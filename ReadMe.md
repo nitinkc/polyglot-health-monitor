@@ -37,3 +37,18 @@ mkdir -p "$GOMODCACHE"
 go mod tidy
 go run .
 ```
+
+## DB
+
+brew install sqlite3
+
+## Documentation
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+.venv/bin/python -m mkdocs serve
+```

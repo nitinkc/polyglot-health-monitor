@@ -1,3 +1,5 @@
 .idea/
 java/target/
 *.pyc
+
+.docs/venv/

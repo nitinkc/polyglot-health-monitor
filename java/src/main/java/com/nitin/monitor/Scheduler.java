@@ -10,14 +10,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * One virtual thread per monitor, looping on its own interval.
  * Global Semaphore bounds concurrent in-flight HTTP checks.
- *
- * TODO: graceful shutdown (stop loops on SIGTERM, let in-flight finish)
- * TODO: persist CheckResult rows instead of just printing
- * TODO: structured JSON logging instead of System.out
+ * Every check result is persisted, and the monitor's status/consecutive_failures
+ * are updated per the Section 4 transition rules.
  */
 public class Scheduler {
     private final ExecutorService virtualThreadExecutor =
@@ -25,10 +24,15 @@ public class Scheduler {
     private final Semaphore checkLimiter;
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final Map<String, Monitor> monitors = new ConcurrentHashMap<>();
+    private final MonitorRepository monitorRepo;
+    private final CheckResultRepository checkResultRepo;
     private volatile boolean running = true;
 
-    public Scheduler(int maxConcurrentChecks) {
+    public Scheduler(int maxConcurrentChecks, MonitorRepository monitorRepo,
+                      CheckResultRepository checkResultRepo) {
         this.checkLimiter = new Semaphore(maxConcurrentChecks);
+        this.monitorRepo = monitorRepo;
+        this.checkResultRepo = checkResultRepo;
     }
 
     public void register(Monitor monitor) {
@@ -54,6 +58,7 @@ public class Scheduler {
     }
 
     private void performCheck(Monitor monitor) {
+        CheckResult result;
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(monitor.url))
@@ -66,22 +71,45 @@ public class Scheduler {
             long latency = System.currentTimeMillis() - start;
 
             boolean success = response.statusCode() < 400;
-            // TODO: update monitor.consecutiveFailures / status per Section 4 rules
-            System.out.printf("{\"monitor_id\":\"%s\",\"status_code\":%d,\"latency_ms\":%d,\"success\":%b}%n",
-                    monitor.id, response.statusCode(), latency, success);
+            result = success
+                    ? CheckResult.success(monitor.id, response.statusCode(), (int) latency)
+                    : CheckResult.failure(monitor.id, "http_status_" + response.statusCode());
+
+            monitor.recordResult(success);
+        } catch (java.net.http.HttpTimeoutException e) {
+            result = CheckResult.failure(monitor.id, "timeout");
+            monitor.recordResult(false);
         } catch (Exception e) {
-            // TODO: distinguish timeout vs connection failure vs other; record CheckResult with error
-            System.out.printf("{\"monitor_id\":\"%s\",\"error\":\"%s\"}%n", monitor.id, e.getMessage());
+            result = CheckResult.failure(monitor.id, e.getClass().getSimpleName() + ": " + e.getMessage());
+            monitor.recordResult(false);
         }
+
+        checkResultRepo.insert(result);
+        monitorRepo.updateStatus(monitor.id, monitor.status, monitor.consecutiveFailures);
+
+        // Structured log line (Section 4.5). Swap for slf4j+logback JSON encoder in production.
+        System.out.printf(
+                "{\"level\":\"info\",\"event\":\"check_completed\",\"monitor_id\":\"%s\",\"success\":%b,\"status\":\"%s\",\"error\":%s,\"ts\":\"%s\"}%n",
+                monitor.id, result.success, monitor.status,
+                result.error == null ? "null" : "\"" + result.error + "\"",
+                result.checkedAt);
     }
 
     public void unregister(String monitorId) {
         monitors.remove(monitorId);
     }
 
-    public void shutdown() {
+    /** Stops accepting new checks and waits up to gracePeriodSeconds for in-flight checks to finish. */
+    public void shutdown(int gracePeriodSeconds) {
         running = false;
         virtualThreadExecutor.shutdown();
-        // TODO: awaitTermination with a grace period, then shutdownNow()
+        try {
+            if (!virtualThreadExecutor.awaitTermination(gracePeriodSeconds, TimeUnit.SECONDS)) {
+                virtualThreadExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            virtualThreadExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

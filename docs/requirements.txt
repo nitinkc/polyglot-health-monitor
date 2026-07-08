@@ -1,0 +1,12 @@
+# Core learning dependencies
+selenium>=4.0.0
+
+# API learning stack (ready for upcoming demos)
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+
+mkdocs>=1.5.0
+mkdocs-material>=9.5.0
+pymdown-extensions>=10.8
+Markdown>=3.6
+mkdocs-swagger-ui-tag>=0.1.0
