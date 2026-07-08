@@ -197,12 +197,12 @@ Multi-stage build in all four (compile/build stage → slim runtime stage). This
 
 ## 7. Suggested Build Order & Time-box
 
-| Order | Language | Time-box | Focus |
-|---|---|---|---|
-| 1 | Java | 1 weekend | Reference implementation; also learn virtual threads/structured concurrency if new to you |
-| 2 | Go | 1 weekend | Biggest conceptual jump — do it while motivation is high |
-| 3 | Python (asyncio) | 1 weekend | Closest to typical FDE/integration work |
-| 4 | TypeScript/Node | 1 weekend | Event loop reasoning, strict typing discipline |
+| Order | Language         | Time-box  | Focus                                                                                     |
+|:------|:-----------------|:----------|:------------------------------------------------------------------------------------------|
+| 1     | Java             | 1 weekend | Reference implementation; also learn virtual threads/structured concurrency if new to you |
+| 2     | Go               | 1 weekend | Biggest conceptual jump — do it while motivation is high                                  |
+| 3     | Python (asyncio) | 1 weekend | Closest to typical FDE/integration work                                                   |
+| 4     | TypeScript/Node  | 1 weekend | Event loop reasoning, strict typing discipline                                            |
 
 After all four: write yourself a short "nuances" doc comparing how each handled cancellation, concurrency bounding, and error propagation. That comparison doc is arguably worth more for interview prep than the code itself — it's the kind of cross-stack fluency an FDE role actually tests for.
 
@@ -272,12 +272,12 @@ under you constantly).
 
 ### 8.4 What each language should focus on
 
-| Language | Driver | Focus |
-|---|---|---|
-| Java | `pgjdbc` + HikariCP | Pool sizing (`maximumPoolSize`), connection validation query, `SQLTransientConnectionException` retry handling |
-| Go | `pgx` (prefer over `lib/pq`, which is in maintenance mode) | `pgxpool.Pool` config, context-aware queries so your existing `context.WithTimeout` work from Section 4 now also bounds DB calls, not just HTTP calls |
-| Python | `asyncpg` (not `psycopg2` — stay async, consistent with your `asyncio` scheduler) | Pool via `asyncpg.create_pool`, and reasoning about pool size vs `MAX_CONCURRENT_CHECKS` |
-| TypeScript | `pg` or `postgres.js` | Connection pool config, and handling a cold-start timeout gracefully (retry with backoff) rather than crashing the request |
+| Language   | Driver                                                                            | Focus                                                                                                                                                 |
+|:-----------|:----------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Java       | `pgjdbc` + HikariCP                                                               | Pool sizing (`maximumPoolSize`), connection validation query, `SQLTransientConnectionException` retry handling                                        |
+| Go         | `pgx` (prefer over `lib/pq`, which is in maintenance mode)                        | `pgxpool.Pool` config, context-aware queries so your existing `context.WithTimeout` work from Section 4 now also bounds DB calls, not just HTTP calls |
+| Python     | `asyncpg` (not `psycopg2` — stay async, consistent with your `asyncio` scheduler) | Pool via `asyncpg.create_pool`, and reasoning about pool size vs `MAX_CONCURRENT_CHECKS`                                                              |
+| TypeScript | `pg` or `postgres.js`                                                             | Connection pool config, and handling a cold-start timeout gracefully (retry with backoff) rather than crashing the request                            |
 
 ##### The core tension
 

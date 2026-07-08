@@ -61,14 +61,8 @@ markdown_extensions:
       generic: true
       block_tag: 'div'
 
-extra_javascript:
-  - https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js
-
-
 nav:
   - Home: index.md
   - Docs:
       - spec: spec.md
       - OpenAPI: API.md
-
-
