@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: Polyglot Health Monitor API
+  description: >
+    Shared API contract for the Java / Go / Python / TypeScript reference
+    implementations. All four servers must satisfy this spec identically.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:{port}/api/v1
+    variables:
+      port:
+        default: "8080"
+
+tags:
+  - name: monitors
+  - name: health
+
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      summary: Liveness check for the server process itself
+      operationId: getHealthz
+      responses:
+        "200":
+          description: Server is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /monitors:
+    get:
+      tags: [monitors]
+      summary: List all monitors (current state only, no history)
+      operationId: listMonitors
+      responses:
+        "200":
+          description: Array of monitors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Monitor"
+    post:
+      tags: [monitors]
+      summary: Create a monitor and begin scheduling checks immediately
+      operationId: createMonitor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonitorCreateRequest"
+      responses:
+        "201":
+          description: Monitor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monitor"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /monitors/{id}:
+    parameters:
+      - $ref: "#/components/parameters/MonitorId"
+    get:
+      tags: [monitors]
+      summary: Get a single monitor's current state
+      operationId: getMonitor
+      responses:
+        "200":
+          description: Monitor found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monitor"
+        "404":
+          description: Monitor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [monitors]
+      summary: Stop scheduling and delete a monitor (cascades history)
+      operationId: deleteMonitor
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Monitor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /monitors/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/MonitorId"
+      - name: limit
+        in: query
+        required: false
+        description: Max history rows to return, newest first
+        schema:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+    get:
+      tags: [monitors]
+      summary: Get a monitor plus its recent check history
+      operationId: getMonitorStatus
+      responses:
+        "200":
+          description: Monitor with history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorStatusResponse"
+        "404":
+          description: Monitor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  parameters:
+    MonitorId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    MonitorStatus:
+      type: string
+      enum: [UNKNOWN, UP, DOWN]
+
+    MonitorCreateRequest:
+      type: object
+      required: [name, url, interval_seconds, timeout_ms, failure_threshold]
+      properties:
+        name:
+          type: string
+          example: example-api
+        url:
+          type: string
+          format: uri
+          example: https://example.com/health
+        interval_seconds:
+          type: integer
+          minimum: 5
+          example: 30
+        timeout_ms:
+          type: integer
+          minimum: 100
+          example: 2000
+        failure_threshold:
+          type: integer
+          minimum: 1
+          example: 3
+
+    Monitor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        interval_seconds:
+          type: integer
+        timeout_ms:
+          type: integer
+        failure_threshold:
+          type: integer
+        status:
+          $ref: "#/components/schemas/MonitorStatus"
+        consecutive_failures:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - url
+        - interval_seconds
+        - timeout_ms
+        - failure_threshold
+        - status
+        - consecutive_failures
+        - created_at
+        - updated_at
+
+    CheckResult:
+      type: object
+      properties:
+        checked_at:
+          type: string
+          format: date-time
+        success:
+          type: boolean
+        status_code:
+          type: integer
+          nullable: true
+        latency_ms:
+          type: integer
+          nullable: true
+        error:
+          type: string
+          nullable: true
+      required:
+        - checked_at
+        - success
+        - status_code
+        - latency_ms
+        - error
+
+    MonitorStatusResponse:
+      type: object
+      properties:
+        monitor:
+          $ref: "#/components/schemas/Monitor"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/CheckResult"
+      required: [monitor, history]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
