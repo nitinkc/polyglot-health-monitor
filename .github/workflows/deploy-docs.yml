@@ -62,7 +62,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site/   # upload the built site for the deploy stage
+          path: docs/site/   # upload the built site for the deploy stage
 
   # ─────────────────────────────────────────
   # Stage 2 — Deploy
