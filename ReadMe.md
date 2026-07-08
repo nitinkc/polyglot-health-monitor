@@ -1,3 +1,5 @@
+[https://nitinkc.github.io/polyglot-health-monitor/](https://nitinkc.github.io/polyglot-health-monitor/)
+
 Run commands:
 
 | Language   | Run Commands                                                                             |
@@ -43,6 +45,8 @@ go run .
 brew install sqlite3
 
 ## Documentation
+
+[https://nitinkc.github.io/polyglot-health-monitor/](https://nitinkc.github.io/polyglot-health-monitor/)
 
 ```shell
 python3 -m venv .venv
