@@ -4,7 +4,7 @@ Run commands:
 
 | Language   | Run Commands                                                                             |
 |:-----------|:-----------------------------------------------------------------------------------------|
-| Java       | `mvn compile exec:java -Dexec.mainClass=com.nitin.monitor.Main (or package + java -jar)` |
+| Java       | `DB_PATH="$PWD/monitor.db" mvn -f java/pom.xml compile exec:java -Dexec.mainClass=com.nitin.monitor.Main` |
 | Go         | `go mod tidy && go run .`                                                                |
 | Python     | `pip3 install -r requirements.txt && uvicorn main:app --reload`                          |
 | TypeScript | `npm install && npm run dev`                                                             |

@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="DB_PATH" value="../monitor.db" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.nitin.monitor.Main" />
+    <module name="health-monitor" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

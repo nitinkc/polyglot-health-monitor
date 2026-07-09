@@ -32,6 +32,7 @@ theme:
 plugins:
   - search
   - swagger-ui-tag
+  - mermaid2
 
 markdown_extensions:
   - admonition
@@ -41,7 +42,8 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_div_format
+#          format: !!python/name:pymdownx.superfences.fence_div_format # Does not work with mkdocs-material 9.0.0, so using the default format instead
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       use_pygments: true
       anchor_linenums: true
@@ -66,3 +68,8 @@ nav:
   - Docs:
       - spec: spec.md
       - OpenAPI: API.md
+  - Implementations:
+      - Java: java-implementation.md
+      - Go: go.md
+      - Python: python.md
+      - TypeScript: typescript.md

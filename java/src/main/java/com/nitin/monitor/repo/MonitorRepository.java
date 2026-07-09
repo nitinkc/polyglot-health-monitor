@@ -1,5 +1,6 @@
-package com.nitin.monitor;
+package com.nitin.monitor.repo;
 
+import com.nitin.monitor.dto.Monitor;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

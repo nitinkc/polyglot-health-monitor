@@ -1,4 +1,4 @@
-package com.nitin.monitor;
+package com.nitin.monitor.dto;
 
 import java.time.Instant;
 import java.util.UUID;

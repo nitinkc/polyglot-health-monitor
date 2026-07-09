@@ -4,6 +4,26 @@ One contract, four implementations (Java, Go, Python, TypeScript). The point: id
 external behavior, idiomatically different internals. If two implementations produce
 different JSON for the same request, that's a bug — not a "language difference."
 
+## 0. High-Level Purpose
+
+At a high level, this application is a **URL health monitoring service** with one shared API and 
+schema across four language implementations.
+
+The system lets a user register endpoints to monitor (for example, `https://example.com/health`) 
+and then continuously checks those endpoints on a configured interval. For each check, it records 
+whether the request succeeded, how long it took, and any error information if it failed.
+
+### What the application does end-to-end
+
+1. Accepts monitor definitions via API (`name`, `url`, `interval_seconds`, `timeout_ms`, `failure_threshold`).
+2. Runs checks concurrently so each monitor is independent and one slow target does not block others.
+3. Enforces a global cap on in-flight outbound checks (`MAX_CONCURRENT_CHECKS`).
+4. Persists every check result to `check_results` and updates monitor state (`UNKNOWN` / `UP` / `DOWN`) based on consecutive-failure rules.
+5. Exposes APIs to list monitors, fetch current state, fetch recent history, and delete monitors.
+6. Shuts down gracefully on `SIGTERM` by stopping new checks, finishing (or timing out) in-flight checks, and closing DB resources cleanly.
+
+This project is intentionally designed to practice **concurrency, cancellation, shutdown, and error-handling idioms** in each language while preserving the same external behavior.
+
 ---
 
 ## 1. Domain Model

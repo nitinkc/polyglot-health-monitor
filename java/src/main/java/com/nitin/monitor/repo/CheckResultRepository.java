@@ -1,5 +1,6 @@
-package com.nitin.monitor;
+package com.nitin.monitor.repo;
 
+import com.nitin.monitor.dto.CheckResult;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,8 +27,14 @@ public class CheckResultRepository {
             ps.setString(2, r.monitorId);
             ps.setString(3, r.checkedAt.toString());
             ps.setInt(4, r.success ? 1 : 0);
-            if (r.statusCode != null) ps.setInt(5, r.statusCode); else ps.setNull(5, java.sql.Types.INTEGER);
-            if (r.latencyMs != null) ps.setInt(6, r.latencyMs); else ps.setNull(6, java.sql.Types.INTEGER);
+            if (r.statusCode != null)
+                ps.setInt(5, r.statusCode);
+            else
+                ps.setNull(5, java.sql.Types.INTEGER);
+            if (r.latencyMs != null)
+                ps.setInt(6, r.latencyMs);
+            else
+                ps.setNull(6, java.sql.Types.INTEGER);
             ps.setString(7, r.error);
             ps.executeUpdate();
         } catch (SQLException e) {

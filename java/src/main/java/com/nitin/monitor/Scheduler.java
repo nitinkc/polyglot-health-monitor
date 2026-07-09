@@ -1,5 +1,9 @@
 package com.nitin.monitor;
 
+import com.nitin.monitor.dto.CheckResult;
+import com.nitin.monitor.dto.Monitor;
+import com.nitin.monitor.repo.CheckResultRepository;
+import com.nitin.monitor.repo.MonitorRepository;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  * are updated per the Section 4 transition rules.
  */
 public class Scheduler {
+    private static final int STOP_AFTER_CONSECUTIVE_FAILURES = 5;
     private final ExecutorService virtualThreadExecutor =
             Executors.newVirtualThreadPerTaskExecutor();
     private final Semaphore checkLimiter;
@@ -41,6 +46,7 @@ public class Scheduler {
     }
 
     private void runLoop(Monitor monitor) {
+    System.out.println("Starting check loop for monitor: " + monitor.id + " With Thread" + Thread.currentThread().getName() );
         while (running && monitors.containsKey(monitor.id)) {
             try {
                 checkLimiter.acquire(); // bounded concurrency
@@ -60,6 +66,7 @@ public class Scheduler {
     private void performCheck(Monitor monitor) {
         CheckResult result;
         try {
+            System.out.println("Performing check for monitor: " + monitor.id + " With Thread : " + Thread.currentThread().getName() );
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(monitor.url))
                     .timeout(Duration.ofMillis(monitor.timeoutMs))
@@ -74,7 +81,7 @@ public class Scheduler {
             result = success
                     ? CheckResult.success(monitor.id, response.statusCode(), (int) latency)
                     : CheckResult.failure(monitor.id, "http_status_" + response.statusCode());
-
+             System.out.println("Result is " + result);
             monitor.recordResult(success);
         } catch (java.net.http.HttpTimeoutException e) {
             result = CheckResult.failure(monitor.id, "timeout");
@@ -86,6 +93,15 @@ public class Scheduler {
 
         checkResultRepo.insert(result);
         monitorRepo.updateStatus(monitor.id, monitor.status, monitor.consecutiveFailures);
+
+        if (!result.success && monitor.consecutiveFailures >= STOP_AFTER_CONSECUTIVE_FAILURES) {
+            if (monitors.remove(monitor.id) != null) {
+                System.err.printf(
+                        "{\"level\":\"warn\",\"event\":\"monitor_auto_stopped\",\"monitor_id\":\"%s\",\"consecutive_failures\":%d,\"reason\":\"too_many_failures\"}%n",
+                        monitor.id,
+                        monitor.consecutiveFailures);
+            }
+        }
 
         // Structured log line (Section 4.5). Swap for slf4j+logback JSON encoder in production.
         System.out.printf(
