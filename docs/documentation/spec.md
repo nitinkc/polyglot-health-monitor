@@ -1,8 +1,9 @@
 # Polyglot Health Monitor — Shared Spec
 
 One contract, four implementations (Java, Go, Python, TypeScript). The point: identical
-external behavior, idiomatically different internals. If two implementations produce
-different JSON for the same request, that's a bug — not a "language difference."
+external behavior, idiomatically different internals.
+
+If two implementations produce **different JSON** for the same request, **that's a bug — not a "language difference."**
 
 ## 0. High-Level Purpose
 
@@ -10,8 +11,12 @@ At a high level, this application is a **URL health monitoring service** with on
 schema across four language implementations.
 
 The system lets a user register endpoints to monitor (for example, `https://example.com/health`) 
-and then continuously checks those endpoints on a configured interval. For each check, it records 
-whether the request succeeded, how long it took, and any error information if it failed.
+and then continuously checks those endpoints on a configured interval. 
+
+For each check, it records 
+- whether the request succeeded, 
+- how long it took, 
+- and any error information if it failed.
 
 ### What the application does end-to-end
 
@@ -87,10 +92,12 @@ CREATE INDEX idx_check_results_monitor_time
     ON check_results (monitor_id, checked_at DESC);
 ```
 
-Each language uses its own idiomatic driver (`database/sql` + `mattn/go-sqlite3` or
-`modernc.org/sqlite` in Go; `sqlite3`/`aiosqlite` in Python; `better-sqlite3` in
-Node; JDBC + `sqlite-jdbc` or Hikari in Java) — but the schema, file, and SQL are
-identical so you can literally point all four servers at the same `.db` file during
+Each language uses its own idiomatic driver 
+- (`database/sql` + `mattn/go-sqlite3` or `modernc.org/sqlite` in Go; 
+- `sqlite3`/`aiosqlite` in Python; `better-sqlite3` in Node; 
+- JDBC + `sqlite-jdbc` or Hikari in Java) 
+
+but the schema, file, and SQL are identical so you can literally point all four servers at the same `.db` file during
 manual testing and watch them interoperate.
 
 ---
@@ -159,15 +166,18 @@ Liveness for the server itself (not the monitors). Always `200 {"status":"ok"}` 
 
 ## 4. Behavioral Requirements (this is the actual point of the exercise)
 
-These are the parts where language idioms diverge — implement all of them, don't skip to make the happy path work:
+These are the parts where language idioms diverge — implement all of them, **don't skip to make the happy path work**:
 
-1. **Concurrent scheduling.** Every monitor runs on its own independent timer/loop. Adding monitor #50 must not delay checks for monitor #1. This is your concurrency primitive test:
+1. **Concurrent scheduling.** Every monitor runs on its **own independent timer/loop**. Adding monitor #50 must not delay 
+  checks for monitor #1. This is your concurrency primitive test:
    - Java: virtual threads (`Thread.ofVirtual()`) or `StructuredTaskScope`, one per monitor tick
    - Go: one goroutine per monitor + `time.Ticker`, coordinated via channels
    - Python: `asyncio` tasks + `asyncio.sleep` loop per monitor, run under `asyncio.run`
-   - TypeScript: don't fake concurrency with `setInterval` per monitor and call it done — use it, but reason explicitly about the event loop and confirm checks aren't serialized
+   - TypeScript: don't fake concurrency with `setInterval` per monitor and call it done — use it, but reason explicitly
+     about the event loop and confirm checks aren't serialized
 
-2. **Bounded concurrency / rate limiting.** Global cap on in-flight HTTP checks (e.g. max 10 concurrent), configurable via env var `MAX_CONCURRENT_CHECKS`. This forces:
+2. **Bounded concurrency / rate limiting.** Global cap on in-flight HTTP checks (e.g. max 10 concurrent), configurable via
+  env var `MAX_CONCURRENT_CHECKS`. This forces:
    - Java: `Semaphore`
    - Go: buffered channel as semaphore, or `golang.org/x/sync/semaphore`
    - Python: `asyncio.Semaphore`
@@ -224,7 +234,9 @@ Multi-stage build in all four (compile/build stage → slim runtime stage). This
 | 3     | Python (asyncio) | 1 weekend | Closest to typical FDE/integration work                                                   |
 | 4     | TypeScript/Node  | 1 weekend | Event loop reasoning, strict typing discipline                                            |
 
-After all four: write yourself a short "nuances" doc comparing how each handled cancellation, concurrency bounding, and error propagation. That comparison doc is arguably worth more for interview prep than the code itself — it's the kind of cross-stack fluency an FDE role actually tests for.
+After all four: write yourself a short "nuances" doc comparing how each handled cancellation, concurrency bounding, 
+and error propagation. That comparison doc is arguably worth more for interview prep than the code itself — it's the 
+kind of cross-stack fluency an FDE role actually tests for.
 
 ---
 

@@ -67,7 +67,7 @@ Connection conn = Database.connect(dbPath);
 **Rationale:**
 
 1. **Configuration Validation** — If `DB_PATH` is missing or the database is inaccessible, we fail immediately with a clear error, not silently after partial initialization.
-2. **Schema Idempotency** — `Database.connect()` applies `schema.sql` on startup if tables don't exist, ensuring all four implementations start with the same schema state.
+2. **Schema Idempotency** — `Database.connect()` applies `../../../schema.sql` on startup if tables don't exist, ensuring all four implementations start with the same schema state.
 3. **Single Connection Lifetime** — A long-lived `Connection` is obtained once and reused for all repository queries, avoiding repeated connection overhead and ensuring transaction consistency.
 4. **Explicit Control** — Unlike ORMs with connection pools and lazy initialization, we open the connection explicitly, making the startup cost visible and testable.
 

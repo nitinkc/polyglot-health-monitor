@@ -1,8 +1,9 @@
-site_name: Health Monitoring API - Polyglot Reference Implementation
-site_description:
-site_author: Nitin Chaurasia
+site_name: Polyglot Learner
+site_description: Health Monitoring API - Polyglot Reference Implementation
 docs_dir: documentation/
 repo_url: https://github.com/nitinkc/polyglot-health-monitor
+repo_name: nitinkc/polyglot-health-monitor
+site_url: https://nitinkc.github.io/polyglot-health-monitor/
 
 theme:
   name: material
@@ -10,29 +11,48 @@ theme:
     previous: fontawesome/solid/angle-left
     next: fontawesome/solid/angle-right
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: brown
-      accent: brown
+      accent: blue
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: brown
-      accent: brown
+      accent: blue
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
   features:
-    - navigation.instant
+    # Navigation
     - navigation.tabs
+#    - navigation.tabs.sticky
     - navigation.sections
-    - header.autohide
-#    -  toc.integrate
+    - navigation.expand
+    - navigation.path
+    - navigation.top           # Back-to-top button
+    - navigation.footer        # Prev/Next page links
+    # navigation.instant disabled — breaks live reload (re-enable for production builds)
+    # - navigation.instant
+    # - navigation.instant.progress
+    # Search
+    - search.suggest
+    - search.highlight
+    - search.share
+    # Content
+    - content.code.copy
+    - content.code.annotate    # (1) style code annotations
+    - content.tabs.link        # Sync tabs across page
+    - content.tooltips
 
 plugins:
   - search
   - swagger-ui-tag
   - mermaid2
+  - glightbox
+  - mkdocs_quiz
 
 markdown_extensions:
   - admonition
@@ -42,11 +62,7 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-#          format: !!python/name:pymdownx.superfences.fence_div_format # Does not work with mkdocs-material 9.0.0, so using the default format instead
           format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.highlight:
-      use_pygments: true
-      anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets:
       base_path: docs
@@ -62,14 +78,31 @@ markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
       block_tag: 'div'
+  - pymdownx.highlight:
+      anchor_linenums: true
+      use_pygments: true
+      guess_lang: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.snippets:
+      base_path: docs
 
 nav:
-  - Home: index.md
-  - Docs:
+  - Home:
+      - Introduction: index.md
       - spec: spec.md
       - OpenAPI: API.md
+      - DB Design: db.md
   - Implementations:
-      - Java: java-implementation.md
-      - Go: go.md
-      - Python: python.md
-      - TypeScript: typescript.md
+      - Java: implementation/java.md
+      - Go: implementation/go.md
+      - Python: implementation/python.md
+      - TypeScript: implementation/typescript.md

@@ -1,4 +1,11 @@
+## Documentation
+
 [https://nitinkc.github.io/polyglot-health-monitor/](https://nitinkc.github.io/polyglot-health-monitor/)
+
+## Installations
+For Java
+- Brew - `brew install maven`
+
 
 Run commands:
 
@@ -43,10 +50,6 @@ go run .
 ## DB
 
 brew install sqlite3
-
-## Documentation
-
-[https://nitinkc.github.io/polyglot-health-monitor/](https://nitinkc.github.io/polyglot-health-monitor/)
 
 ```shell
 python3 -m venv .venv

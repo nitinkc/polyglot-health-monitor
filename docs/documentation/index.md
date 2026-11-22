@@ -1,6 +1,6 @@
 # Polyglot Health Monitor
 
-**A single service, built four times, to make language nuances muscle memory.**
+**A single service, built four times, to make language nuances & muscle memory.**
 
 ## Why this project exists
 
@@ -11,10 +11,12 @@ language that stack happens to use.
 
 The premise is simple: pick one project with enough real engineering surface
 area — concurrency, I/O, timeouts, persistence, graceful shutdown — and build it
-four separate times, once each in **Java, Go, Python, and TypeScript**. Same
-external contract every time. Different internals, on purpose. The goal isn't to
-translate code from one language into another — it's to feel each language's own
-answer to the same problems: how does *this* language want you to bound
+four separate times, once each in **Java, Go, Python, and TypeScript**. 
+
+Same external contract every time. Different internals, on purpose. 
+
+The goal isn't to translate code from one language into another — it's to feel **each language's own
+answer** to the same problems: how does *this* language want you to bound
 concurrency? Cancel a request? Propagate an error?
 
 ## The project: a Concurrent URL/Service Health Monitor
@@ -45,8 +47,7 @@ that you can't fake your way through with boilerplate:
 | TypeScript | Express                            | `setInterval` + `AbortController` + `p-limit` |
 
 Frameworks were chosen deliberately *thin* — no Spring Boot, no NestJS, no Gin —
-so the language does the work being practiced, not the framework's opinions on
-top of it.
+so the language does the work being practiced, **not the framework's opinions on top of it**.
 
 ## Project artifacts
 
@@ -54,9 +55,8 @@ top of it.
   behavioral requirements, and testing standards every implementation must meet
 - **[OpenAPI spec](API.md)** — machine-readable API contract, importable
   into Swagger/Postman/Insomnia for interactive testing
-- **[Database schema](db.md)** — one SQLite schema shared verbatim across
-  all four implementations, so a monitor created from the Go server is
-  immediately visible from the Python server
+- **[Database schema](db.md)** — one SQLite schema shared verbatim across all four implementations, so a monitor created 
+  from the Go server is immediately visible from the Python server
 
 ## Build order
 
@@ -65,15 +65,12 @@ top of it.
 3. **Python (asyncio)** — closest to typical day-to-day FDE integration work
 4. **TypeScript/Node** — event-loop reasoning and strict typing discipline
 
-An optional fifth pass swaps local SQLite for a remote **Postgres database
-(via Neon)**, adding connection pooling and retry-with-backoff under real
-network latency — a closer approximation of a client's actual environment.
+An optional fifth pass swaps local SQLite for a remote **Postgres database (via Neon)**, adding connection pooling and 
+retry-with-backoff under real network latency — a closer approximation of a client's actual environment.
 
 ## What "done" looks like
 
-Four servers, each idiomatic in its own language, that produce byte-for-byte
-identical JSON for the same request. Alongside them, a short personal write-up
-comparing how each language handled cancellation, concurrency bounding, and
-error propagation — arguably the more valuable artifact of the two, since
-that comparison is exactly the kind of cross-stack fluency an FDE interview
-tests for.
+**4 servers**, each idiomatic in its own language, that produce byte-for-byte identical JSON for the same request. 
+Alongside them, a short personal write-up comparing how each language handled cancellation, concurrency bounding, and
+error propagation — arguably the more valuable artifact of the two, since that comparison is exactly the kind of
+cross-stack fluency an FDE interview tests for.
