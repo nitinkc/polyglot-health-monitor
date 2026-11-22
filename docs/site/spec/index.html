@@ -1,0 +1,3655 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Health Monitoring API - Polyglot Reference Implementation">
+      
+      
+      
+        <link rel="canonical" href="https://nitinkc.github.io/polyglot-health-monitor/spec/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../API/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>spec - Polyglot Learner</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="brown" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#polyglot-health-monitor-shared-spec" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Polyglot Learner" class="md-header__button md-logo" aria-label="Polyglot Learner" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Polyglot Learner
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              spec
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="brown" data-md-color-accent="blue" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="brown" data-md-color-accent="blue" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256l137.3-137.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/nitinkc/polyglot-health-monitor" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    nitinkc/polyglot-health-monitor
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../implementation/java/" class="md-tabs__link">
+          
+  
+  
+  Implementations
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Polyglot Learner" class="md-nav__button md-logo" aria-label="Polyglot Learner" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    Polyglot Learner
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/nitinkc/polyglot-health-monitor" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    nitinkc/polyglot-health-monitor
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    spec
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    spec
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#0-high-level-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. High-Level Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0. High-Level Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-the-application-does-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the application does end-to-end
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-domain-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Domain Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-database-schema-sqlite-identical-file-across-all-four" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Database Schema (SQLite, identical file across all four)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-rest-api-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. REST API Contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. REST API Contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-monitors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /monitors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-monitors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /monitors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-monitorsid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /monitors/:id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-monitorsidstatuslimit20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /monitors/:id/status?limit=20
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-monitorsid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DELETE /monitors/:id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-healthz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /healthz
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-behavioral-requirements-this-is-the-actual-point-of-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Behavioral Requirements (this is the actual point of the exercise)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-testing-requirements-same-for-all-four" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Testing Requirements (same for all four)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-dockerfile-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Dockerfile requirement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-suggested-build-order-time-box" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Suggested Build Order &amp; Time-box
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-appendix-round-2-remote-postgres-neon-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Appendix: Round 2 — Remote Postgres (Neon) Migration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Appendix: Round 2 — Remote Postgres (Neon) Migration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-why-neon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Why Neon
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-schema-changes-minimal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Schema changes (minimal)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-new-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 New config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-what-each-language-should-focus-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 What each language should focus on
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.4 What each language should focus on">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-core-tension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The core tension
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concrete-recommendation-per-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concrete recommendation per language
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-split-specifically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this split specifically
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-new-behavioral-requirement-retry-with-backoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 New behavioral requirement: retry with backoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenAPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DB Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Implementations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation/go/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Go
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation/typescript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TypeScript
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#0-high-level-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. High-Level Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0. High-Level Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-the-application-does-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the application does end-to-end
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-domain-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Domain Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-database-schema-sqlite-identical-file-across-all-four" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Database Schema (SQLite, identical file across all four)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-rest-api-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. REST API Contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. REST API Contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#post-monitors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /monitors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-monitors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /monitors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-monitorsid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /monitors/:id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-monitorsidstatuslimit20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /monitors/:id/status?limit=20
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-monitorsid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DELETE /monitors/:id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-healthz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /healthz
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-behavioral-requirements-this-is-the-actual-point-of-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Behavioral Requirements (this is the actual point of the exercise)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-testing-requirements-same-for-all-four" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Testing Requirements (same for all four)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-dockerfile-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Dockerfile requirement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-suggested-build-order-time-box" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Suggested Build Order &amp; Time-box
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-appendix-round-2-remote-postgres-neon-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Appendix: Round 2 — Remote Postgres (Neon) Migration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Appendix: Round 2 — Remote Postgres (Neon) Migration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-why-neon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Why Neon
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-schema-changes-minimal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Schema changes (minimal)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-new-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 New config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-what-each-language-should-focus-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 What each language should focus on
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.4 What each language should focus on">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-core-tension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The core tension
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concrete-recommendation-per-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concrete recommendation per language
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-split-specifically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this split specifically
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-new-behavioral-requirement-retry-with-backoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 New behavioral requirement: retry with backoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="polyglot-health-monitor-shared-spec">Polyglot Health Monitor — Shared Spec<a class="headerlink" href="#polyglot-health-monitor-shared-spec" title="Permanent link">¶</a></h1>
+<p>One contract, four implementations (Java, Go, Python, TypeScript). The point: identical
+external behavior, idiomatically different internals.</p>
+<p>If two implementations produce <strong>different JSON</strong> for the same request, <strong>that's a bug — not a "language difference."</strong></p>
+<h2 id="0-high-level-purpose">0. High-Level Purpose<a class="headerlink" href="#0-high-level-purpose" title="Permanent link">¶</a></h2>
+<p>At a high level, this application is a <strong>URL health monitoring service</strong> with one shared API and 
+schema across four language implementations.</p>
+<p>The system lets a user register endpoints to monitor (for example, <code class="language-text highlight">https://example.com/health</code>) 
+and then continuously checks those endpoints on a configured interval. </p>
+<p>For each check, it records 
+- whether the request succeeded, 
+- how long it took, 
+- and any error information if it failed.</p>
+<h3 id="what-the-application-does-end-to-end">What the application does end-to-end<a class="headerlink" href="#what-the-application-does-end-to-end" title="Permanent link">¶</a></h3>
+<ol>
+<li>Accepts monitor definitions via API (<code class="language-text highlight">name</code>, <code class="language-text highlight">url</code>, <code class="language-scdoc highlight">interval_seconds</code>, <code class="language-scdoc highlight">timeout_ms</code>, <code class="language-scdoc highlight">failure_threshold</code>).</li>
+<li>Runs checks concurrently so each monitor is independent and one slow target does not block others.</li>
+<li>Enforces a global cap on in-flight outbound checks (<code class="language-scdoc highlight">MAX_CONCURRENT_CHECKS</code>).</li>
+<li>Persists every check result to <code class="language-scdoc highlight">check_results</code> and updates monitor state (<code class="language-text highlight">UNKNOWN</code> / <code class="language-text highlight">UP</code> / <code class="language-text highlight">DOWN</code>) based on consecutive-failure rules.</li>
+<li>Exposes APIs to list monitors, fetch current state, fetch recent history, and delete monitors.</li>
+<li>Shuts down gracefully on <code class="language-text highlight">SIGTERM</code> by stopping new checks, finishing (or timing out) in-flight checks, and closing DB resources cleanly.</li>
+</ol>
+<p>This project is intentionally designed to practice <strong>concurrency, cancellation, shutdown, and error-handling idioms</strong> in each language while preserving the same external behavior.</p>
+<hr>
+<h2 id="1-domain-model">1. Domain Model<a class="headerlink" href="#1-domain-model" title="Permanent link">¶</a></h2>
+<p><strong>Monitor</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">field</th>
+<th style="text-align: left;">type</th>
+<th style="text-align: left;">notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code class="language-text highlight">id</code></td>
+<td style="text-align: left;">string (UUID)</td>
+<td style="text-align: left;">server-generated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-text highlight">name</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">user-provided label</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-text highlight">url</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">must be valid http/https URL</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">interval_seconds</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">how often to check, min 5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">timeout_ms</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">per-request timeout, min 100</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">failure_threshold</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">consecutive failures before status flips to <code class="language-text highlight">DOWN</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-text highlight">status</code></td>
+<td style="text-align: left;">enum</td>
+<td style="text-align: left;"><code class="language-text highlight">UNKNOWN</code> | <code class="language-text highlight">UP</code> | <code class="language-text highlight">DOWN</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">consecutive_failures</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">resets to 0 on success</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">created_at</code></td>
+<td style="text-align: left;">timestamp (ISO 8601 UTC)</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">updated_at</code></td>
+<td style="text-align: left;">timestamp (ISO 8601 UTC)</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<p><strong>CheckResult</strong> (append-only history row)</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">field</th>
+<th style="text-align: left;">type</th>
+<th style="text-align: left;">notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code class="language-text highlight">id</code></td>
+<td style="text-align: left;">string (UUID)</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">monitor_id</code></td>
+<td style="text-align: left;">string (FK)</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">checked_at</code></td>
+<td style="text-align: left;">timestamp</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-text highlight">success</code></td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">status_code</code></td>
+<td style="text-align: left;">int, nullable</td>
+<td style="text-align: left;">null if connection/timeout failure</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-scdoc highlight">latency_ms</code></td>
+<td style="text-align: left;">int, nullable</td>
+<td style="text-align: left;">null if request never completed</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-text highlight">error</code></td>
+<td style="text-align: left;">string, nullable</td>
+<td style="text-align: left;">short error class/message if failed</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2-database-schema-sqlite-identical-file-across-all-four">2. Database Schema (SQLite, identical file across all four)<a class="headerlink" href="#2-database-schema-sqlite-identical-file-across-all-four" title="Permanent link">¶</a></h2>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">monitors</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">id</span><span class="w">                  </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">name</span><span class="w">                </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">url</span><span class="w">                 </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">interval_seconds</span><span class="w">    </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">interval_seconds</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">5</span><span class="p">),</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="n">timeout_ms</span><span class="w">          </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">timeout_ms</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">100</span><span class="p">),</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">failure_threshold</span><span class="w">   </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">failure_threshold</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="n">status</span><span class="w">              </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">'UNKNOWN'</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">consecutive_failures</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="n">created_at</span><span class="w">          </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="n">updated_at</span><span class="w">          </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">);</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">check_results</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="n">id</span><span class="w">          </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="n">monitor_id</span><span class="w">  </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">monitors</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="n">checked_at</span><span class="w">  </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="n">success</span><span class="w">     </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">   </span><span class="c1">-- 0/1</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="n">status_code</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="n">latency_ms</span><span class="w">  </span><span class="nb">INTEGER</span><span class="p">,</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="n">error</span><span class="w">       </span><span class="nb">TEXT</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">);</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_check_results_monitor_time</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="k">ON</span><span class="w"> </span><span class="n">check_results</span><span class="w"> </span><span class="p">(</span><span class="n">monitor_id</span><span class="p">,</span><span class="w"> </span><span class="n">checked_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+</span></code></pre></div>
+<p>Each language uses its own idiomatic driver 
+- (<code class="language-text highlight">database/sql</code> + <code class="language-tsql highlight"><span class="n">mattn</span><span class="o">/</span><span class="k">go</span><span class="o">-</span><span class="n">sqlite3</span></code> or <code class="language-text highlight">modernc.org/sqlite</code> in Go; 
+- <code class="language-text highlight">sqlite3</code>/<code class="language-text highlight">aiosqlite</code> in Python; <code class="language-text highlight">better-sqlite3</code> in Node; 
+- JDBC + <code class="language-text highlight">sqlite-jdbc</code> or Hikari in Java) </p>
+<p>but the schema, file, and SQL are identical so you can literally point all four servers at the same <code class="language-gas highlight"><span class="na">.db</span></code> file during
+manual testing and watch them interoperate.</p>
+<hr>
+<h2 id="3-rest-api-contract">3. REST API Contract<a class="headerlink" href="#3-rest-api-contract" title="Permanent link">¶</a></h2>
+<p>Base path: <code class="language-text highlight">/api/v1</code>. All bodies are JSON. All timestamps ISO 8601 UTC.</p>
+<h3 id="post-monitors"><code class="language-text highlight">POST /monitors</code><a class="headerlink" href="#post-monitors" title="Permanent link">¶</a></h3>
+<p>Create + start monitoring immediately.</p>
+<p>Request:
+</p><div class="language-json highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"example-api"</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/health"</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">"interval_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">"timeout_ms"</span><span class="p">:</span><span class="w"> </span><span class="mi">2000</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">"failure_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
+</span></code></pre></div>
+Response <code class="language-cbmbas highlight"><span class="mf">201</span></code>:
+<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"b3f1..."</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"example-api"</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/health"</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">"interval_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">"timeout_ms"</span><span class="p">:</span><span class="w"> </span><span class="mi">2000</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">"failure_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"UNKNOWN"</span><span class="p">,</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">"consecutive_failures"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nt">"created_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-07-07T12:00:00Z"</span><span class="p">,</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="nt">"updated_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-07-07T12:00:00Z"</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">}</span>
+</span></code></pre></div>
+<code class="language-cbmbas highlight"><span class="mf">400</span></code> on validation failure (bad URL, interval &lt; 5, etc.) with:
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="w"> </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="s2">"interval_seconds must be &gt;= 5"</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div><p></p>
+<h3 id="get-monitors"><code class="language-text highlight">GET /monitors</code><a class="headerlink" href="#get-monitors" title="Permanent link">¶</a></h3>
+<p>List all monitors (no history). <code class="language-cbmbas highlight"><span class="mf">200</span></code> with array of Monitor objects.</p>
+<h3 id="get-monitorsid"><code class="language-text highlight">GET /monitors/:id</code><a class="headerlink" href="#get-monitorsid" title="Permanent link">¶</a></h3>
+<p>Single monitor, current state only. <code class="language-cbmbas highlight"><span class="mf">404</span></code> if missing.</p>
+<h3 id="get-monitorsidstatuslimit20"><code class="language-text highlight">GET /monitors/:id/status?limit=20</code><a class="headerlink" href="#get-monitorsidstatuslimit20" title="Permanent link">¶</a></h3>
+<p>Monitor + recent history, newest first. Default <code class="language-text highlight">limit=20</code>, max <code class="language-cbmbas highlight"><span class="mf">100</span></code>.
+</p><div class="language-json highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"monitor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...Mo</span><span class="kc">n</span><span class="err">i</span><span class="kc">t</span><span class="err">or...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">"history"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"checked_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"success"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"status_code"</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="w"> </span><span class="mi">84</span><span class="p">,</span><span class="w"> </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</span></code></pre></div><p></p>
+<h3 id="delete-monitorsid"><code class="language-text highlight">DELETE /monitors/:id</code><a class="headerlink" href="#delete-monitorsid" title="Permanent link">¶</a></h3>
+<p>Stops scheduling, deletes monitor + cascades history. <code class="language-cbmbas highlight"><span class="mf">204</span></code> on success.</p>
+<h3 id="get-healthz"><code class="language-text highlight">GET /healthz</code><a class="headerlink" href="#get-healthz" title="Permanent link">¶</a></h3>
+<p>Liveness for the server itself (not the monitors). Always <code class="language-cbmbas highlight"><span class="mf">200</span><span class="w"> </span><span class="err">{</span><span class="s">"status"</span><span class="p">:</span><span class="s">"ok"</span><span class="err">}</span></code> if the process is up. Used by your own Docker healthcheck.</p>
+<hr>
+<h2 id="4-behavioral-requirements-this-is-the-actual-point-of-the-exercise">4. Behavioral Requirements (this is the actual point of the exercise)<a class="headerlink" href="#4-behavioral-requirements-this-is-the-actual-point-of-the-exercise" title="Permanent link">¶</a></h2>
+<p>These are the parts where language idioms diverge — implement all of them, <strong>don't skip to make the happy path work</strong>:</p>
+<ol>
+<li><strong>Concurrent scheduling.</strong> Every monitor runs on its <strong>own independent timer/loop</strong>. Adding monitor #50 must not delay 
+  checks for monitor #1. This is your concurrency primitive test:</li>
+<li>Java: virtual threads (<code class="language-text highlight">Thread.ofVirtual()</code>) or <code class="language-text highlight">StructuredTaskScope</code>, one per monitor tick</li>
+<li>Go: one goroutine per monitor + <code class="language-text highlight">time.Ticker</code>, coordinated via channels</li>
+<li>Python: <code class="language-text highlight">asyncio</code> tasks + <code class="language-text highlight">asyncio.sleep</code> loop per monitor, run under <code class="language-text highlight">asyncio.run</code></li>
+<li>
+<p>TypeScript: don't fake concurrency with <code class="language-text highlight">setInterval</code> per monitor and call it done — use it, but reason explicitly
+     about the event loop and confirm checks aren't serialized</p>
+</li>
+<li>
+<p><strong>Bounded concurrency / rate limiting.</strong> Global cap on in-flight HTTP checks (e.g. max 10 concurrent), configurable via
+  env var <code class="language-scdoc highlight">MAX_CONCURRENT_CHECKS</code>. This forces:</p>
+</li>
+<li>Java: <code class="language-text highlight">Semaphore</code></li>
+<li>Go: buffered channel as semaphore, or <code class="language-text highlight">golang.org/x/sync/semaphore</code></li>
+<li>Python: <code class="language-text highlight">asyncio.Semaphore</code></li>
+<li>
+<p>TypeScript: <code class="language-text highlight">p-limit</code> or a hand-rolled queue — and understand <em>why</em> you need one at all given there's no real parallelism</p>
+</li>
+<li>
+<p><strong>Timeout enforcement.</strong> The <code class="language-scdoc highlight">timeout_ms</code> per monitor must actually cancel the in-flight HTTP request, not just stop waiting for it client-side while the socket stays open.</p>
+</li>
+<li>Java: <code class="language-text highlight">HttpClient</code> with per-request timeout</li>
+<li>Go: <code class="language-text highlight">context.WithTimeout</code> passed into the request</li>
+<li>Python: <code class="language-scdoc highlight">asyncio.wait_for</code> around the aiohttp/httpx call, or client-level timeout</li>
+<li>
+<p>TypeScript: <code class="language-text highlight">AbortController</code> + <code class="language-text highlight">AbortSignal.timeout()</code></p>
+</li>
+<li>
+<p><strong>Graceful shutdown.</strong> On <code class="language-text highlight">SIGTERM</code>, stop accepting new monitor checks, let in-flight checks finish (or hard-cancel after a grace period, your choice — but document it), close the DB connection cleanly, then exit. No orphaned goroutines/threads/tasks logged after shutdown.</p>
+</li>
+<li>
+<p><strong>Structured logging.</strong> One JSON log line per check result minimum:
+   </p><div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span><span class="nt">"level"</span><span class="p">:</span><span class="s2">"info"</span><span class="p">,</span><span class="nt">"monitor_id"</span><span class="p">:</span><span class="s2">"..."</span><span class="p">,</span><span class="nt">"event"</span><span class="p">:</span><span class="s2">"check_completed"</span><span class="p">,</span><span class="nt">"success"</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">"latency_ms"</span><span class="p">:</span><span class="mi">84</span><span class="p">,</span><span class="nt">"ts"</span><span class="p">:</span><span class="s2">"..."</span><span class="p">}</span>
+</span></code></pre></div>
+   Use each ecosystem's idiomatic structured logger (<code class="language-text highlight">slf4j</code>+logback w/ JSON encoder for Java; <code class="language-text highlight">slog</code> for Go; <code class="language-text highlight">structlog</code> for Python; <code class="language-text highlight">pino</code> for TypeScript) rather than hand-rolled string concatenation.<p></p>
+</li>
+<li>
+<p><strong>Config via env vars</strong>, same names across all four: <code class="language-text highlight">PORT</code>, <code class="language-scdoc highlight">DB_PATH</code>, <code class="language-scdoc highlight">MAX_CONCURRENT_CHECKS</code>, <code class="language-scdoc highlight">LOG_LEVEL</code>. Fail fast with a clear error if required config is missing/invalid — don't silently default something like <code class="language-scdoc highlight">DB_PATH</code>.</p>
+</li>
+<li>
+<p><strong>Error handling idiom</strong> — this is the single biggest "muscle memory" item:</p>
+</li>
+<li>Java: checked vs unchecked exceptions, where you actually catch vs propagate</li>
+<li>Go: explicit <code class="language-teratermmacro highlight"><span class="k">if</span><span class="w"> </span><span class="nv">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nv">nil</span></code> returns, wrapped with <code class="language-swig highlight"><span class="nf">%w</span></code> and <code class="language-text highlight">errors.Is</code>/<code class="language-text highlight">errors.As</code></li>
+<li>Python: exceptions + context managers; don't let a single monitor's failure crash the scheduler loop</li>
+<li>TypeScript: <code class="language-text highlight">Result</code>-style discriminated unions vs try/catch — pick one and be consistent, then articulate why</li>
+</ol>
+<hr>
+<h2 id="5-testing-requirements-same-for-all-four">5. Testing Requirements (same for all four)<a class="headerlink" href="#5-testing-requirements-same-for-all-four" title="Permanent link">¶</a></h2>
+<ul>
+<li>Unit tests: URL validation, threshold/status transition logic (pure logic, no I/O)</li>
+<li>Integration test: spin up the real HTTP server + real SQLite (temp file or <code class="language-text highlight">:memory:</code> where supported), hit a local test HTTP server (stand up a throwaway one) that you can force to fail/timeout/succeed on command, assert status transitions to <code class="language-text highlight">DOWN</code> after <code class="language-scdoc highlight">failure_threshold</code> consecutive failures and back to <code class="language-text highlight">UP</code> on next success</li>
+<li>Idiomatic test tooling per language: JUnit 5 (Java), <code class="language-text highlight">testing</code> + <code class="language-text highlight">httptest</code> (Go), <code class="language-text highlight">pytest</code> + <code class="language-text highlight">pytest-asyncio</code> (Python), <code class="language-text highlight">vitest</code>/<code class="language-text highlight">jest</code> + <code class="language-text highlight">supertest</code> (TypeScript)</li>
+</ul>
+<hr>
+<h2 id="6-dockerfile-requirement">6. Dockerfile requirement<a class="headerlink" href="#6-dockerfile-requirement" title="Permanent link">¶</a></h2>
+<p>Multi-stage build in all four (compile/build stage → slim runtime stage). This is a good forcing function for understanding each language's deployment footprint:
+- Java: build with Maven/Gradle stage → run on a JRE (not JDK) base image
+- Go: build stage → <code class="language-text highlight">scratch</code> or <code class="language-text highlight">distroless</code> static binary
+- Python: pip install stage → slim runtime, non-root user
+- TypeScript: <code class="language-text highlight">npm ci &amp;&amp; npm run build</code> stage → <code class="language-text highlight">node:slim</code> runtime, only <code class="language-text highlight">dist/</code> + prod deps copied over</p>
+<hr>
+<h2 id="7-suggested-build-order-time-box">7. Suggested Build Order &amp; Time-box<a class="headerlink" href="#7-suggested-build-order-time-box" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Order</th>
+<th style="text-align: left;">Language</th>
+<th style="text-align: left;">Time-box</th>
+<th style="text-align: left;">Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">Java</td>
+<td style="text-align: left;">1 weekend</td>
+<td style="text-align: left;">Reference implementation; also learn virtual threads/structured concurrency if new to you</td>
+</tr>
+<tr>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">Go</td>
+<td style="text-align: left;">1 weekend</td>
+<td style="text-align: left;">Biggest conceptual jump — do it while motivation is high</td>
+</tr>
+<tr>
+<td style="text-align: left;">3</td>
+<td style="text-align: left;">Python (asyncio)</td>
+<td style="text-align: left;">1 weekend</td>
+<td style="text-align: left;">Closest to typical FDE/integration work</td>
+</tr>
+<tr>
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">TypeScript/Node</td>
+<td style="text-align: left;">1 weekend</td>
+<td style="text-align: left;">Event loop reasoning, strict typing discipline</td>
+</tr>
+</tbody>
+</table>
+<p>After all four: write yourself a short "nuances" doc comparing how each handled cancellation, concurrency bounding, 
+and error propagation. That comparison doc is arguably worth more for interview prep than the code itself — it's the 
+kind of cross-stack fluency an FDE role actually tests for.</p>
+<hr>
+<h2 id="8-appendix-round-2-remote-postgres-neon-migration">8. Appendix: Round 2 — Remote Postgres (Neon) Migration<a class="headerlink" href="#8-appendix-round-2-remote-postgres-neon-migration" title="Permanent link">¶</a></h2>
+<p>Optional fifth pass, once all four local-SQLite builds work. Goal: same schema and
+API contract, but now the DB is over the network — so you have to handle real
+latency, pooling, and transient failures instead of a local file. This is closer to
+what a client's actual environment looks like.</p>
+<h3 id="81-why-neon">8.1 Why Neon<a class="headerlink" href="#81-why-neon" title="Permanent link">¶</a></h3>
+<ul>
+<li>Free tier, standard Postgres wire protocol — every language has a first-class,
+  mature driver (no niche client library to learn instead of the concurrency
+  lesson you're actually after).</li>
+<li>Serverless/autosuspend behavior on the free tier means your first request after
+  idle time will be slow (cold start) — this is a <em>feature</em> for this exercise, not
+  a bug. It forces you to handle connection timeouts and retries for real.</li>
+<li>Gives you a real DSN (<code class="language-tsql highlight"><span class="nl">postgresql</span><span class="p">:</span><span class="o">//</span><span class="k">user</span><span class="err">:</span><span class="n">pass</span><span class="nv">@host</span><span class="o">/</span><span class="n">dbname</span><span class="vm">?</span><span class="n">sslmode</span><span class="o">=</span><span class="n">require</span></code>) to
+  drop into each language's config the same way.</li>
+</ul>
+<p><em>(Turso is a reasonable alternative if you'd rather stay on SQLite's dialect
+instead of moving to Postgres — same idea, distributed libSQL over the network.
+Neon is recommended here because Postgres driver maturity/pooling patterns are
+more broadly transferable to client engagements.)</em></p>
+<h3 id="82-schema-changes-minimal">8.2 Schema changes (minimal)<a class="headerlink" href="#82-schema-changes-minimal" title="Permanent link">¶</a></h3>
+<p>Postgres needs a few type swaps from the SQLite schema in Section 2:</p>
+<p></p><div class="language-sql highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">monitors</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="n">id</span><span class="w">                   </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">gen_random_uuid</span><span class="p">(),</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="n">name</span><span class="w">                 </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="n">url</span><span class="w">                  </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="n">interval_seconds</span><span class="w">     </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">interval_seconds</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">5</span><span class="p">),</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="n">timeout_ms</span><span class="w">           </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">timeout_ms</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">100</span><span class="p">),</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="n">failure_threshold</span><span class="w">    </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">failure_threshold</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="n">status</span><span class="w">               </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">'UNKNOWN'</span><span class="p">,</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="n">consecutive_failures</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="n">created_at</span><span class="w">           </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="n">updated_at</span><span class="w">           </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">()</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="p">);</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">check_results</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="n">id</span><span class="w">          </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">gen_random_uuid</span><span class="p">(),</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">    </span><span class="n">monitor_id</span><span class="w">  </span><span class="n">UUID</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">monitors</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="n">checked_at</span><span class="w">  </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">now</span><span class="p">(),</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="n">success</span><span class="w">     </span><span class="nb">BOOLEAN</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span><span class="n">status_code</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">    </span><span class="n">latency_ms</span><span class="w">  </span><span class="nb">INTEGER</span><span class="p">,</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">    </span><span class="n">error</span><span class="w">       </span><span class="nb">TEXT</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="p">);</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_check_results_monitor_time</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">    </span><span class="k">ON</span><span class="w"> </span><span class="n">check_results</span><span class="w"> </span><span class="p">(</span><span class="n">monitor_id</span><span class="p">,</span><span class="w"> </span><span class="n">checked_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+</span></code></pre></div>
+Enable <code class="language-text highlight">pgcrypto</code> (<code class="language-teratermmacro highlight"><span class="nv">CREATE</span><span class="w"> </span><span class="nv">EXTENSION</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="nv">NOT</span><span class="w"> </span><span class="nv">EXISTS</span><span class="w"> </span><span class="nv">pgcrypto</span><span class="c1">;</span></code>) if <code class="language-scdoc highlight">gen_random_uuid()</code>
+isn't available on your Neon project by default.<p></p>
+<h3 id="83-new-config">8.3 New config<a class="headerlink" href="#83-new-config" title="Permanent link">¶</a></h3>
+<p>Add one env var across all four: <code class="language-scdoc highlight">DATABASE_URL</code> (Postgres DSN). Keep <code class="language-scdoc highlight">DB_PATH</code> as
+a fallback for local dev — don't rip out the SQLite path, just make the driver
+layer swappable behind an interface/trait/protocol so you're practicing
+<strong>abstraction over a data layer</strong>, itself a good FDE skill (client swaps their DB
+under you constantly).</p>
+<h3 id="84-what-each-language-should-focus-on">8.4 What each language should focus on<a class="headerlink" href="#84-what-each-language-should-focus-on" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Language</th>
+<th style="text-align: left;">Driver</th>
+<th style="text-align: left;">Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Java</td>
+<td style="text-align: left;"><code class="language-text highlight">pgjdbc</code> + HikariCP</td>
+<td style="text-align: left;">Pool sizing (<code class="language-text highlight">maximumPoolSize</code>), connection validation query, <code class="language-text highlight">SQLTransientConnectionException</code> retry handling</td>
+</tr>
+<tr>
+<td style="text-align: left;">Go</td>
+<td style="text-align: left;"><code class="language-text highlight">pgx</code> (prefer over <code class="language-text highlight">lib/pq</code>, which is in maintenance mode)</td>
+<td style="text-align: left;"><code class="language-text highlight">pgxpool.Pool</code> config, context-aware queries so your existing <code class="language-text highlight">context.WithTimeout</code> work from Section 4 now also bounds DB calls, not just HTTP calls</td>
+</tr>
+<tr>
+<td style="text-align: left;">Python</td>
+<td style="text-align: left;"><code class="language-text highlight">asyncpg</code> (not <code class="language-text highlight">psycopg2</code> — stay async, consistent with your <code class="language-text highlight">asyncio</code> scheduler)</td>
+<td style="text-align: left;">Pool via <code class="language-scdoc highlight">asyncpg.create_pool</code>, and reasoning about pool size vs <code class="language-scdoc highlight">MAX_CONCURRENT_CHECKS</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">TypeScript</td>
+<td style="text-align: left;"><code class="language-text highlight">pg</code> or <code class="language-text highlight">postgres.js</code></td>
+<td style="text-align: left;">Connection pool config, and handling a cold-start timeout gracefully (retry with backoff) rather than crashing the request</td>
+</tr>
+</tbody>
+</table>
+<h5 id="the-core-tension">The core tension<a class="headerlink" href="#the-core-tension" title="Permanent link">¶</a></h5>
+<ul>
+<li><strong>Heavy framework</strong> (Spring Boot, NestJS, Django/FastAPI-with-all-the-batteries) → closer to what you'll touch on a real client engagement, but the framework does a lot of the concurrency/error-handling/DI work <em>for</em> you. You learn the framework's opinions, not the language's nuances.</li>
+<li><strong>Thin/stdlib-first</strong> → you write the scheduler, the semaphore, the timeout handling yourself. You feel the language's raw behavior. But it's less representative of day-to-day client code, where nobody hand-rolls a connection pool.</li>
+</ul>
+<p>Given your stated goal — muscle memory in language nuances, not framework mastery — <strong>thin-but-industry-standard</strong> is the right middle path: use the framework that's genuinely the default choice at most companies, but pick the <em>minimal</em> one in each ecosystem so it doesn't absorb the concurrency/error-handling work you're trying to practice.</p>
+<h5 id="concrete-recommendation-per-language">Concrete recommendation per language<a class="headerlink" href="#concrete-recommendation-per-language" title="Permanent link">¶</a></h5>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Language</th>
+<th style="text-align: left;">Use this</th>
+<th style="text-align: left;">Not this</th>
+<th style="text-align: left;">Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Java</strong></td>
+<td style="text-align: left;">Plain <code class="language-text highlight">com.sun.net.httpserver</code> or <strong>Javalin</strong> (thin wrapper, no DI magic)</td>
+<td style="text-align: left;">Spring Boot</td>
+<td style="text-align: left;">Spring's <code class="language-tsql highlight"><span class="nv">@Async</span></code>, <code class="language-tsql highlight"><span class="nv">@Scheduled</span></code>, and auto-configured thread pools would do steps 4.1–4.3 <em>for</em> you — exactly the nuance you want to write yourself</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Go</strong></td>
+<td style="text-align: left;">Standard library <code class="language-text highlight">net/http</code> + <code class="language-text highlight">http.ServeMux</code> (Go 1.22+ has decent routing built in now)</td>
+<td style="text-align: left;">Gin, Echo, Fiber</td>
+<td style="text-align: left;">Go's stdlib HTTP is already ergonomic and idiomatic — a router framework buys you almost nothing here and hides <code class="language-text highlight">context</code> propagation, which is the whole point</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Python</strong></td>
+<td style="text-align: left;"><strong>FastAPI</strong> (but only for routing/validation), asyncio hand-rolled for scheduling</td>
+<td style="text-align: left;">Celery, Django</td>
+<td style="text-align: left;">FastAPI's Pydantic validation is genuinely industry-standard and worth knowing; but don't let Celery do your background scheduling — that's the asyncio nuance you're here for</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>TypeScript</strong></td>
+<td style="text-align: left;"><strong>Express</strong> or raw <code class="language-text highlight">node:http</code></td>
+<td style="text-align: left;">NestJS</td>
+<td style="text-align: left;">NestJS's decorators/DI/module system are powerful but they abstract away exactly the event-loop reasoning (Promise scheduling, AbortController) you want reps on</td>
+</tr>
+</tbody>
+</table>
+<h5 id="why-this-split-specifically">Why this split specifically<a class="headerlink" href="#why-this-split-specifically" title="Permanent link">¶</a></h5>
+<ul>
+<li>Javalin, stdlib <code class="language-text highlight">net/http</code>, FastAPI-for-routing-only, and Express are all <strong>real, industry-common choices</strong> — you're not building toy code, you'd ship any of these to production. So it still counts as "best practices."</li>
+<li>None of them impose an opinionated concurrency or DI model on top of the language — which means when you write the scheduler, semaphore, and shutdown handling, you're writing <em>language</em> code, not <em>framework</em> code. That's where the muscle memory actually lives.</li>
+<li>If you later interview somewhere that uses Spring or NestJS specifically, layering that framework on top of a project where you already deeply understand the underlying concurrency model is a much faster ramp than learning both at once.</li>
+</ul>
+<h3 id="85-new-behavioral-requirement-retry-with-backoff">8.5 New behavioral requirement: retry with backoff<a class="headerlink" href="#85-new-behavioral-requirement-retry-with-backoff" title="Permanent link">¶</a></h3>
+<p>Because Neon's free tier autosuspends after idle, your first query after a gap
+may take several seconds or fail outright. Add:
+- One retry with a short exponential backoff (e.g. 200ms, 800ms) on connection
+  acquisition failure, not on every query — don't mask real query bugs
+- Log the retry as a structured <code class="language-scdoc highlight">event: "db_connection_retry"</code> line, not silently</p>
+<p>This is the actual point of Round 2: local SQLite never taught you what to do when
+the DB is slow to wake up or the network blips. Now you'll have written that
+handling four times, in four idioms, which is exactly the kind of thing an FDE
+interview loves to probe ("what happens when your DB connection times out
+mid-request?").</p><div id="quiz-progress-sidebar" aria-label="Quiz Progress" style="display: none;">
+  <!-- mkdocs-quiz progress sidebar (desktop) -->
+  <label class="md-nav__title">
+    <span class="md-nav__icon md-icon"></span>
+    Quiz Progress
+  </label>
+  <ul class="md-nav__list" data-md-component="quiz-progress">
+    <li class="md-nav__item">
+      <div class="md-nav__link">
+        <span class="md-ellipsis">
+          Answered: <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span> (<span class="quiz-progress-answered-percentage">0%</span>)
+        </span>
+      </div>
+    </li>
+    <li class="md-nav__item">
+      <div class="md-nav__link">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-bar-incorrect" style="width: 0%"></div>
+          <div class="quiz-progress-bar-correct" style="width: 0%"></div>
+        </div>
+      </div>
+    </li>
+    <li class="md-nav__item">
+      <div class="md-nav__link quiz-correct-reset">
+        <span class="md-ellipsis">
+          Correct: <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span> (<span class="quiz-progress-score-percentage">0%</span>)
+        </span>
+        <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
+          Reset
+        </a>
+      </div>
+    </li>
+  </ul>
+</div>
+<nav id="quiz-progress-mobile" class="quiz-progress-mobile md-nav" aria-label="Quiz Progress" style="display: none;">
+  <!-- mkdocs-quiz progress sidebar (mobile) -->
+  <div class="quiz-progress-bar">
+    <div class="quiz-progress-bar-incorrect" style="width: 0%"></div>
+    <div class="quiz-progress-bar-correct" style="width: 0%"></div>
+  </div>
+  <div data-md-component="quiz-progress">
+    <div class="quiz-correct-reset">
+      <span class="md-ellipsis">
+        Answered: <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span>
+      </span>
+      <span class="md-ellipsis">
+        Correct: <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span>
+      </span>
+      <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
+        Reset
+      </a>
+    </div>
+  </div>
+</nav><style type="text/css">.quiz {
+  border: 1px solid black;
+  padding: 1rem;
+  margin: 1rem 0;
+  position: relative;
+}
+/* Set margin-top of first quiz child (skip the header link) */
+.quiz > .quiz-question:first-of-type {
+  margin-top: 0;
+}
+/* Remove top margin from first element inside quiz-question */
+.quiz-question > *:first-child {
+  margin-top: 0;
+}
+.quiz .hidden {
+  display: none;
+}
+
+.quiz form button {
+  background-color: var(--md-primary-fg-color);
+  border: none;
+  color: var(--md-primary-bg-color);
+  padding: 0.5rem 1rem;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
+}
+
+.quiz form button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.quiz form button:disabled {
+  background-color: var(--md-default-fg-color--lighter, #ccc);
+  color: var(--md-default-fg-color--light, #666);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.wrong label,
+.wrong label * {
+  color: #dc3545;
+  text-decoration: line-through;
+}
+.correct label,
+.correct label * {
+  color: #198754;
+  font-weight: bold;
+}
+
+fieldset {
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+fieldset input {
+  margin: 0 10px;
+}
+fieldset label {
+  margin: 0 10px;
+}
+
+input[type="radio"].correct {
+  accent-color: #198754;
+}
+input[type="radio"].wrong {
+  accent-color: #dc3545;
+}
+.content {
+  margin: 10px;
+}
+
+/* Quiz feedback container */
+.quiz-feedback {
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Individual feedback box (one per answer) */
+.quiz-feedback-item {
+  position: relative;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.quiz-feedback-item.correct {
+  background-color: #d1e7dd;
+  border: 1px solid #a3cfbb;
+  color: #198754;
+}
+
+.quiz-feedback-item.incorrect {
+  background-color: #f8d7da;
+  border: 1px solid #f1aeb5;
+  color: #dc3545;
+}
+
+[data-md-color-scheme="slate"] .quiz-feedback-item.correct {
+  background-color: #051b11;
+  border: 1px solid #0f5132;
+}
+
+[data-md-color-scheme="slate"] .quiz-feedback-item.incorrect {
+  background-color: #2c0b0e;
+  border: 1px solid #842029;
+}
+
+/* Answer label badge overlapping top-left of feedback box */
+.quiz-feedback-badge {
+  position: absolute;
+  top: -0.55rem;
+  left: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quiz-feedback-item.correct .quiz-feedback-badge {
+  background-color: #a3cfbb;
+  color: #0f5132;
+}
+
+.quiz-feedback-item.incorrect .quiz-feedback-badge {
+  background-color: #f1aeb5;
+  color: #842029;
+}
+
+[data-md-color-scheme="slate"] .quiz-feedback-item.correct .quiz-feedback-badge {
+  background-color: #0f5132;
+  color: #a3cfbb;
+}
+
+[data-md-color-scheme="slate"] .quiz-feedback-item.incorrect .quiz-feedback-badge {
+  background-color: #842029;
+  color: #f1aeb5;
+}
+
+/* When badge is present, add top padding to prevent content overlap */
+.quiz-feedback-badge + .quiz-feedback-item-content {
+  margin-top: 0.25rem;
+}
+
+/* Quiz header link styling - positioned in top right corner */
+.quiz-header-link {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0;
+  font-size: 1rem;
+  text-decoration: none;
+  color: var(--md-default-fg-color--light, #888);
+  transition: opacity 0.2s;
+  padding: 0.25rem 0.5rem;
+}
+.quiz:hover .quiz-header-link,
+.quiz-header-link:focus-visible {
+  opacity: 1;
+}
+
+/* Focus indicators for keyboard navigation */
+.quiz input:focus-visible {
+  outline: 2px solid var(--md-accent-fg-color, #448aff);
+  outline-offset: 2px;
+}
+
+/* Quiz number header styling */
+.quiz-number {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+/* Quiz Progress Sidebar - Progress bar styling */
+/* Most styling comes from Material's .md-nav classes */
+#quiz-progress-sidebar {
+  margin-top: 1.5rem;
+}
+/* if config progress_sidebar_position is top, need top padding instead of bottom */
+.md-nav--secondary > #quiz-progress-sidebar:first-child {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+@media screen and (min-width: 59.9375em) {
+  #quiz-progress-sidebar .md-nav__list {
+    border-left: 3px solid var(--md-default-fg-color--lightest);
+  }
+}
+
+.quiz-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--md-default-fg-color--lightest, rgba(0, 0, 0, 0.07));
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0.2rem 0;
+  display: flex;
+}
+
+.quiz-progress-bar-incorrect {
+  height: 100%;
+  background: rgba(244, 67, 54, 0.8);
+  transition: width 0.3s ease;
+}
+
+.quiz-progress-bar-correct {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.3s ease;
+}
+
+.quiz-correct-reset {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Mobile Quiz Progress Tracker */
+/* Shows under navbar on mobile, hidden on desktop */
+.quiz-progress-mobile {
+  display: none; /* Hidden by default on desktop */
+  background-color: var(--md-default-bg-color);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest, rgba(0, 0, 0, 0.07));
+  padding: 0.8rem;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  position: sticky;
+  top: 48px;
+  z-index: 3; /* Below Material header (z-index: 4) but above page content */
+}
+
+/* Show the mobile tracker only when the secondary sidebar (and its progress
+   widget) is hidden. Material reveals .md-sidebar--secondary at min-width: 60em,
+   so the mobile tracker must stop at 60em - 1px to avoid showing both at once. */
+@media screen and (max-width: 59.9375em) {
+  .quiz-progress-mobile {
+    display: block;
+  }
+}
+
+/* Mobile tracker styling adjustments */
+.quiz-progress-mobile .md-nav__list {
+  padding: 0;
+  margin: 0;
+  max-width: 61rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+}
+
+.quiz-progress-mobile .md-nav__item {
+  margin: 0.3rem 0;
+}
+
+.quiz-progress-mobile .md-nav__link {
+  padding: 0.2rem 0;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quiz-progress-mobile .quiz-progress-bar {
+  margin: 0.3rem 0;
+}
+
+.quiz-progress-mobile .md-ellipsis {
+  flex: 1;
+}
+
+/* Quiz Intro */
+.quiz-intro {
+  margin: 1rem 0;
+}
+
+.quiz-intro p {
+  margin: 0 0 0.5rem 0;
+}
+
+/* Quiz Results End Screen */
+.quiz-results {
+  border: 1px solid black;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  background-color: var(--md-default-bg-color);
+  transition: all 0.3s ease;
+}
+
+/* Progress state - subtle styling */
+.quiz-results-progress {
+  text-align: center;
+  color: var(--md-default-fg-color--light);
+}
+
+.quiz-results-progress h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--md-default-fg-color);
+}
+
+.quiz-results-stats,
+.quiz-results-correct-stats {
+  font-size: 0.95rem;
+  margin: 0.5rem 0;
+}
+
+.quiz-results-answered,
+.quiz-results-correct,
+.quiz-results-total,
+.quiz-results-percentage {
+  font-weight: 600;
+  color: var(--md-default-fg-color);
+}
+
+/* Complete state - bold and prominent styling */
+.quiz-results-complete {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.quiz-results-complete.hidden {
+  display: none;
+}
+
+.quiz-results-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  color: var(--md-default-fg-color);
+}
+
+.quiz-results-score-display {
+  margin: 1.5rem 0;
+}
+
+.quiz-results-score-value {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+/* Score color coding */
+.quiz-results-score-excellent {
+  color: #198754;
+  background-color: rgba(25, 135, 84, 0.1);
+}
+
+.quiz-results-score-good {
+  color: #28a745;
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.quiz-results-score-average {
+  color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.quiz-results-score-poor {
+  color: #fd7e14;
+  background-color: rgba(253, 126, 20, 0.1);
+}
+
+.quiz-results-score-fail {
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.quiz-results-message {
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin: 1rem 0 2rem 0;
+  color: var(--md-default-fg-color);
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] .quiz-results-score-excellent {
+  color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.15);
+}
+
+[data-md-color-scheme="slate"] .quiz-results-score-good {
+  color: #66bb6a;
+  background-color: rgba(102, 187, 106, 0.15);
+}
+
+[data-md-color-scheme="slate"] .quiz-results-score-average {
+  color: #ffeb3b;
+  background-color: rgba(255, 235, 59, 0.15);
+}
+
+[data-md-color-scheme="slate"] .quiz-results-score-poor {
+  color: #ff9800;
+  background-color: rgba(255, 152, 0, 0.15);
+}
+
+[data-md-color-scheme="slate"] .quiz-results-score-fail {
+  color: #f44336;
+  background-color: rgba(244, 67, 54, 0.15);
+}
+
+/* Fill-in-the-blank quiz styles */
+.quiz-blank-input {
+  border: none;
+  border-bottom: 2px solid var(--md-default-fg-color--light, #999);
+  background-color: transparent;
+  padding: 0.2rem 0.5rem;
+  font-size: inherit;
+  font-family: inherit;
+  color: var(--md-default-fg-color);
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+  /* min-width is set via inline style based on answer length */
+}
+
+.quiz-blank-input:focus {
+  border-bottom-color: var(--md-primary-fg-color, #1976d2);
+  background-color: var(--md-default-bg-color--light, rgba(0, 0, 0, 0.02));
+}
+
+.quiz-blank-input.correct {
+  border-bottom-color: #198754;
+  background-color: rgba(25, 135, 84, 0.1);
+  color: #198754;
+}
+
+.quiz-blank-input.wrong {
+  border-bottom-color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.quiz-blank-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Dark mode adjustments for fill-in-the-blank */
+[data-md-color-scheme="slate"] .quiz-blank-input {
+  border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
+[data-md-color-scheme="slate"] .quiz-blank-input:focus {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-md-color-scheme="slate"] .quiz-blank-input.correct {
+  border-bottom-color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+[data-md-color-scheme="slate"] .quiz-blank-input.wrong {
+  border-bottom-color: #f44336;
+  background-color: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+}
+</style><script type="text/javascript">var JSConfetti=function(){"use strict";function t(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function e(t,e){for(var i=0;i<e.length;i++){var n=e[i];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,n.key,n)}}function i(t,i,n){return i&&e(t.prototype,i),n&&e(t,n),t}function n(t){return+t.replace(/px/,"")}function s(t,e){var i=arguments.length>2&&void 0!==arguments[2]?arguments[2]:0,n=Math.random()*(e-t)+t;return Math.floor(n*Math.pow(10,i))/Math.pow(10,i)}function o(t){return t[s(0,t.length)]}var a=["#fcf403","#62fc03","#f4fc03","#03e7fc","#03fca5","#a503fc","#fc03ad","#fc03c2"];function r(t){return Math.log(t)/Math.log(1920)}var h=function(){function e(i){t(this,e);var n=i.initialPosition,a=i.direction,h=i.confettiRadius,c=i.confettiColors,u=i.emojis,l=i.emojiSize,d=i.canvasWidth,f=s(.9,1.7,3)*r(d);this.confettiSpeed={x:f,y:f},this.finalConfettiSpeedX=s(.2,.6,3),this.rotationSpeed=u.length?.01:s(.03,.07,3)*r(d),this.dragForceCoefficient=s(5e-4,9e-4,6),this.radius={x:h,y:h},this.initialRadius=h,this.rotationAngle="left"===a?s(0,.2,3):s(-.2,0,3),this.emojiSize=l,this.emojiRotationAngle=s(0,2*Math.PI),this.radiusYUpdateDirection="down";var m="left"===a?s(82,15)*Math.PI/180:s(-15,-82)*Math.PI/180;this.absCos=Math.abs(Math.cos(m)),this.absSin=Math.abs(Math.sin(m));var v=s(-150,0),p={x:n.x+("left"===a?-v:v)*this.absCos,y:n.y-v*this.absSin};this.currentPosition=Object.assign({},p),this.initialPosition=Object.assign({},p),this.color=u.length?null:o(c),this.emoji=u.length?o(u):null,this.createdAt=(new Date).getTime(),this.direction=a}return i(e,[{key:"draw",value:function(t){var e=this.currentPosition,i=this.radius,n=this.color,s=this.emoji,o=this.rotationAngle,a=this.emojiRotationAngle,r=this.emojiSize,h=window.devicePixelRatio;n?(t.fillStyle=n,t.beginPath(),t.ellipse(e.x*h,e.y*h,i.x*h,i.y*h,o,0,2*Math.PI),t.fill()):s&&(t.font="".concat(r,"px serif"),t.save(),t.translate(h*e.x,h*e.y),t.rotate(a),t.textAlign="center",t.fillText(s,0,0),t.restore())}},{key:"updatePosition",value:function(t,e){var i=this.confettiSpeed,n=this.dragForceCoefficient,s=this.finalConfettiSpeedX,o=this.radiusYUpdateDirection,a=this.rotationSpeed,r=this.createdAt,h=this.direction,c=e-r;i.x>s&&(this.confettiSpeed.x-=n*t),this.currentPosition.x+=i.x*("left"===h?-this.absCos:this.absCos)*t,this.currentPosition.y=this.initialPosition.y-i.y*this.absSin*c+.00125*Math.pow(c,2)/2,this.rotationSpeed-=this.emoji?1e-4:1e-5*t,this.rotationSpeed<0&&(this.rotationSpeed=0),this.emoji?this.emojiRotationAngle+=this.rotationSpeed*t%(2*Math.PI):"down"===o?(this.radius.y-=t*a,this.radius.y<=0&&(this.radius.y=0,this.radiusYUpdateDirection="up")):(this.radius.y+=t*a,this.radius.y>=this.initialRadius&&(this.radius.y=this.initialRadius,this.radiusYUpdateDirection="down"))}},{key:"getIsVisibleOnCanvas",value:function(t){return this.currentPosition.y<t+100}}]),e}();function c(){var t=document.createElement("canvas");return t.style.position="fixed",t.style.width="100%",t.style.height="100%",t.style.top="0",t.style.left="0",t.style.zIndex="1000",t.style.pointerEvents="none",document.body.appendChild(t),t}function u(t){var e=t.confettiRadius,i=void 0===e?6:e,n=t.confettiNumber,s=void 0===n?t.confettiesNumber||(t.emojis?40:250):n,o=t.confettiColors,r=void 0===o?a:o,h=t.emojis,c=void 0===h?t.emojies||[]:h,u=t.emojiSize,l=void 0===u?80:u;return t.emojies&&console.error("emojies argument is deprecated, please use emojis instead"),t.confettiesNumber&&console.error("confettiesNumber argument is deprecated, please use confettiNumber instead"),{confettiRadius:i,confettiNumber:s,confettiColors:r,emojis:c,emojiSize:l}}var l=function(){function e(i){var n=this;t(this,e),this.canvasContext=i,this.shapes=[],this.promise=new Promise((function(t){return n.resolvePromise=t}))}return i(e,[{key:"getBatchCompletePromise",value:function(){return this.promise}},{key:"addShapes",value:function(){var t;(t=this.shapes).push.apply(t,arguments)}},{key:"complete",value:function(){var t;return!this.shapes.length&&(null===(t=this.resolvePromise)||void 0===t||t.call(this),!0)}},{key:"processShapes",value:function(t,e,i){var n=this,s=t.timeDelta,o=t.currentTime;this.shapes=this.shapes.filter((function(t){return t.updatePosition(s,o),t.draw(n.canvasContext),!i||t.getIsVisibleOnCanvas(e)}))}}]),e}();return function(){function e(){var i=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};t(this,e),this.activeConfettiBatches=[],this.canvas=i.canvas||c(),this.canvasContext=this.canvas.getContext("2d"),this.requestAnimationFrameRequested=!1,this.lastUpdated=(new Date).getTime(),this.iterationIndex=0,this.loop=this.loop.bind(this),requestAnimationFrame(this.loop)}return i(e,[{key:"loop",value:function(){var t,e,i,s,o;this.requestAnimationFrameRequested=!1,t=this.canvas,e=window.devicePixelRatio,i=getComputedStyle(t),s=n(i.getPropertyValue("width")),o=n(i.getPropertyValue("height")),t.setAttribute("width",(s*e).toString()),t.setAttribute("height",(o*e).toString());var a=(new Date).getTime(),r=a-this.lastUpdated,h=this.canvas.offsetHeight,c=this.iterationIndex%10==0;this.activeConfettiBatches=this.activeConfettiBatches.filter((function(t){return t.processShapes({timeDelta:r,currentTime:a},h,c),!c||!t.complete()})),this.iterationIndex++,this.queueAnimationFrameIfNeeded(a)}},{key:"queueAnimationFrameIfNeeded",value:function(t){this.requestAnimationFrameRequested||this.activeConfettiBatches.length<1||(this.requestAnimationFrameRequested=!0,this.lastUpdated=t||(new Date).getTime(),requestAnimationFrame(this.loop))}},{key:"addConfetti",value:function(){for(var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{},e=u(t),i=e.confettiRadius,n=e.confettiNumber,s=e.confettiColors,o=e.emojis,a=e.emojiSize,r=this.canvas.getBoundingClientRect(),c=r.width,d=r.height,f=5*d/7,m={x:0,y:f},v={x:c,y:f},p=new l(this.canvasContext),y=0;y<n/2;y++){var g=new h({initialPosition:m,direction:"right",confettiRadius:i,confettiColors:s,confettiNumber:n,emojis:o,emojiSize:a,canvasWidth:c}),C=new h({initialPosition:v,direction:"left",confettiRadius:i,confettiColors:s,confettiNumber:n,emojis:o,emojiSize:a,canvasWidth:c});p.addShapes(g,C)}return this.activeConfettiBatches.push(p),this.queueAnimationFrameIfNeeded(),p.getBatchCompletePromise()}},{key:"clearCanvas",value:function(){this.activeConfettiBatches=[]}},{key:"destroyCanvas",value:function(){this.canvas.remove()}}]),e}()}();
+</script><script type="text/javascript">
+window.mkdocsQuizTranslations = {};
+</script><script type="text/javascript">
+window.mkdocsQuizConfig = {
+  confetti: true,
+  showProgress: true,
+  progressSidebarPosition: "top"
+};
+</script><script type="text/javascript" defer="">// Wrap everything in an IIFE to avoid variable redeclaration issues
+// when Material theme instant navigation reloads the page
+(function () {
+  // Constants
+  const STORAGE_KEY_PREFIX = "quiz_progress_";
+
+  // Translation helper function
+  function t(key, params = {}) {
+    let text = window.mkdocsQuizTranslations?.[key] || key;
+    // Simple template replacement for {n} and {key} style placeholders
+    return text.replace(/{(\w+)}/g, (_, k) => (params[k] !== undefined ? params[k] : `{${k}}`));
+  }
+
+  // Confetti instance (will be initialized if enabled)
+  let jsConfetti = null;
+
+  // Store event listeners for cleanup
+  let eventListeners = [];
+
+  // Initialize confetti if enabled
+  if (window.mkdocsQuizConfig && window.mkdocsQuizConfig.confetti) {
+    if (typeof JSConfetti !== "undefined") {
+      jsConfetti = new JSConfetti();
+    }
+  }
+
+  // Function to move quiz progress sidebar into TOC sidebar
+  // This needs to run on every page load for Material instant navigation
+  function repositionSidebar() {
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      const sidebar = document.getElementById("quiz-progress-sidebar");
+      const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner .md-nav--secondary");
+
+      if (sidebar && tocSidebar) {
+        // Check if sidebar is already in the correct position
+        // by seeing if it's already a child of tocSidebar
+        if (!tocSidebar.contains(sidebar)) {
+          // Get position from config (default: "top")
+          const position =
+            window.mkdocsQuizConfig && window.mkdocsQuizConfig.progressSidebarPosition
+              ? window.mkdocsQuizConfig.progressSidebarPosition
+              : "top";
+
+          // Move sidebar based on configured position
+          if (position === "bottom") {
+            // Append to the end (below TOC)
+            tocSidebar.appendChild(sidebar);
+          } else {
+            // Default: insert at the top (above TOC)
+            if (tocSidebar.firstChild) {
+              tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
+            } else {
+              tocSidebar.appendChild(sidebar);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Cleanup function to remove event listeners and prevent memory leaks
+  function cleanup() {
+    eventListeners.forEach(({ element, event, handler }) => {
+      element.removeEventListener(event, handler);
+    });
+    eventListeners = [];
+  }
+
+  // Helper function to add tracked event listeners
+  function addTrackedEventListener(element, event, handler) {
+    element.addEventListener(event, handler);
+    eventListeners.push({ element, event, handler });
+  }
+
+  // Global quiz tracker
+  const quizTracker = {
+    quizzes: {},
+    totalQuizzes: 0,
+    answeredQuizzes: 0,
+    correctQuizzes: 0,
+
+    init: function () {
+      this.totalQuizzes = document.querySelectorAll(".quiz").length;
+      this.loadFromStorage();
+      // Initialize wasCompleted based on restored state to prevent confetti on page load
+      // Only fire confetti when completing quizzes in the current session, not from localStorage
+      const progress = this.getProgress();
+      this.wasCompleted = progress.answered === progress.total && progress.total > 0;
+      this.updateDisplay();
+    },
+
+    markQuiz: function (quizId, isCorrect, selectedValues = []) {
+      const wasAnswered = !!this.quizzes[quizId];
+      const wasCorrect = this.wasPreviouslyCorrect(quizId);
+
+      if (!wasAnswered) {
+        this.answeredQuizzes++;
+      }
+
+      this.quizzes[quizId] = {
+        answered: true,
+        correct: isCorrect,
+        selectedValues: selectedValues,
+      };
+
+      if (isCorrect && !wasCorrect) {
+        this.correctQuizzes++;
+      } else if (!isCorrect && wasCorrect) {
+        this.correctQuizzes--;
+      }
+
+      this.saveToStorage();
+      this.updateDisplay();
+    },
+
+    wasPreviouslyCorrect: function (quizId) {
+      return this.quizzes[quizId] && this.quizzes[quizId].correct;
+    },
+
+    resetQuiz: function (quizId) {
+      if (this.quizzes[quizId]) {
+        if (this.quizzes[quizId].correct) {
+          this.correctQuizzes--;
+        }
+        this.answeredQuizzes--;
+        delete this.quizzes[quizId];
+        this.saveToStorage();
+        this.updateDisplay();
+      }
+    },
+
+    resetAllQuiz: function () {
+      this.quizzes = {};
+      this.answeredQuizzes = 0;
+      this.correctQuizzes = 0;
+      this.saveToStorage();
+      this.updateDisplay();
+
+      // Reset all quiz forms on the page
+      document.querySelectorAll(".quiz").forEach((quiz) => {
+        const form = quiz.querySelector("form");
+        const fieldset = form.querySelector("fieldset");
+        const submitButton = form.querySelector('button[type="submit"]');
+        const resetButton = form.querySelector(".quiz-reset-button");
+        const feedbackDiv = form.querySelector(".quiz-feedback");
+        const section = quiz.querySelector("section");
+
+        // Clear all selections
+        const allInputs = fieldset.querySelectorAll('input[name="answer"]');
+        allInputs.forEach((input) => {
+          input.checked = false;
+          input.disabled = false;
+        });
+
+        // Reset colors
+        resetFieldset(fieldset);
+
+        // Hide content section
+        if (section) {
+          section.classList.add("hidden");
+        }
+
+        // Hide feedback container
+        feedbackDiv.classList.add("hidden");
+        feedbackDiv.innerHTML = "";
+
+        // Show submit button, hide reset button
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.classList.remove("hidden");
+        }
+        if (resetButton) {
+          resetButton.classList.add("hidden");
+        }
+      });
+    },
+
+    getProgress: function () {
+      return {
+        total: this.totalQuizzes,
+        answered: this.answeredQuizzes,
+        correct: this.correctQuizzes,
+        percentage: this.totalQuizzes > 0 ? Math.round((this.answeredQuizzes / this.totalQuizzes) * 100) : 0,
+        score: this.totalQuizzes > 0 ? Math.round((this.correctQuizzes / this.totalQuizzes) * 100) : 0,
+      };
+    },
+
+    saveToStorage: function () {
+      try {
+        const pageKey = STORAGE_KEY_PREFIX + window.location.pathname;
+        const data = JSON.stringify(this.quizzes);
+
+        // Check size limit (50KB max to prevent quota issues)
+        if (data.length > 50000) {
+          console.warn("Quiz progress data exceeds size limit, not saving to localStorage");
+          this.showStorageWarning("Quiz progress is too large to save");
+          return;
+        }
+
+        localStorage.setItem(pageKey, data);
+      } catch (e) {
+        // Handle quota exceeded or localStorage disabled
+        console.error("Failed to save quiz progress:", e);
+        this.showStorageWarning(
+          "Unable to save quiz progress. Your browser may have storage disabled or quota exceeded.",
+        );
+      }
+    },
+
+    loadFromStorage: function () {
+      try {
+        const pageKey = STORAGE_KEY_PREFIX + window.location.pathname;
+        const stored = localStorage.getItem(pageKey);
+
+        if (stored) {
+          // Validate size before parsing (50KB max)
+          if (stored.length > 50000) {
+            console.warn("Stored quiz data exceeds size limit, clearing corrupted data");
+            localStorage.removeItem(pageKey);
+            return;
+          }
+
+          const parsed = JSON.parse(stored);
+
+          // Validate structure: should be an object
+          if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+            console.warn("Invalid quiz data structure, clearing corrupted data");
+            localStorage.removeItem(pageKey);
+            return;
+          }
+
+          this.quizzes = parsed;
+
+          // Recalculate counts and validate quiz data structure
+          this.answeredQuizzes = 0;
+          this.correctQuizzes = 0;
+          for (let key in this.quizzes) {
+            const quiz = this.quizzes[key];
+            // Validate each quiz entry has expected structure
+            if (typeof quiz !== "object" || typeof quiz.answered !== "boolean" || typeof quiz.correct !== "boolean") {
+              console.warn("Invalid quiz entry structure, clearing corrupted data");
+              this.quizzes = {};
+              localStorage.removeItem(pageKey);
+              return;
+            }
+
+            if (quiz.answered) {
+              this.answeredQuizzes++;
+            }
+            if (quiz.correct) {
+              this.correctQuizzes++;
+            }
+          }
+        }
+      } catch (e) {
+        // Handle parsing errors or localStorage unavailable
+        console.error("Failed to load quiz progress:", e);
+        const pageKey = STORAGE_KEY_PREFIX + window.location.pathname;
+        try {
+          localStorage.removeItem(pageKey); // Clear corrupted data
+        } catch (cleanupError) {
+          // localStorage might be completely unavailable
+        }
+      }
+    },
+
+    updateDisplay: function () {
+      const progress = this.getProgress();
+      const wasComplete = this.wasCompleted;
+      const isComplete = progress.answered === progress.total && progress.total > 0;
+
+      // Dispatch custom event for sidebar/other UI components
+      window.dispatchEvent(
+        new CustomEvent("quizProgressUpdate", {
+          detail: progress,
+        }),
+      );
+      // Update sidebar if it exists
+      this.updateSidebar();
+      // Update results div if it exists
+      this.updateResultsDiv(progress, isComplete, wasComplete);
+
+      // Track completion state
+      this.wasCompleted = isComplete;
+    },
+
+    updateResultsDiv: function (progress, isComplete, wasComplete) {
+      const resultsDiv = document.getElementById("quiz-results");
+      if (!resultsDiv) return;
+
+      // Update progress section
+      const answeredEl = resultsDiv.querySelector(".quiz-results-answered");
+      const totalEl = resultsDiv.querySelector(".quiz-results-total");
+      const percentageEl = resultsDiv.querySelector(".quiz-results-percentage");
+      const correctEl = resultsDiv.querySelector(".quiz-results-correct");
+
+      if (answeredEl) answeredEl.textContent = progress.answered;
+      if (totalEl) totalEl.textContent = progress.total;
+      if (percentageEl) percentageEl.textContent = progress.percentage + "%";
+      if (correctEl) correctEl.textContent = progress.correct;
+
+      // Handle completion state
+      const progressSection = resultsDiv.querySelector(".quiz-results-progress");
+      const completeSection = resultsDiv.querySelector(".quiz-results-complete");
+
+      if (isComplete) {
+        // Hide progress, show complete
+        if (progressSection) progressSection.classList.add("hidden");
+        if (completeSection) {
+          completeSection.classList.remove("hidden");
+
+          // Update score display
+          const scoreValue = resultsDiv.querySelector(".quiz-results-score-value");
+          const scoreMessage = resultsDiv.querySelector(".quiz-results-message");
+
+          if (scoreValue) {
+            scoreValue.textContent = progress.score + "%";
+
+            // Remove all score classes
+            scoreValue.classList.remove(
+              "quiz-results-score-excellent",
+              "quiz-results-score-good",
+              "quiz-results-score-average",
+              "quiz-results-score-poor",
+              "quiz-results-score-fail",
+            );
+
+            // Add appropriate score class and message
+            let message = "";
+            if (progress.score >= 90) {
+              scoreValue.classList.add("quiz-results-score-excellent");
+              message = t("Outstanding! You aced it!");
+            } else if (progress.score >= 75) {
+              scoreValue.classList.add("quiz-results-score-good");
+              message = t("Great job! You really know your stuff!");
+            } else if (progress.score >= 60) {
+              scoreValue.classList.add("quiz-results-score-average");
+              message = t("Good effort! Keep learning!");
+            } else if (progress.score >= 40) {
+              scoreValue.classList.add("quiz-results-score-poor");
+              message = t("Not bad, but there's room for improvement!");
+            } else {
+              scoreValue.classList.add("quiz-results-score-fail");
+              message = t("Better luck next time! Keep trying!");
+            }
+
+            if (scoreMessage) scoreMessage.textContent = message;
+          }
+
+          // Trigger confetti and scroll on first completion
+          if (!wasComplete) {
+            // Scroll to results div
+            resultsDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            // Fire confetti if enabled and score is good
+            if (jsConfetti && progress.score >= 10) {
+              setTimeout(() => {
+                jsConfetti.addConfetti();
+              }, 500);
+            }
+          }
+        }
+      } else {
+        // Show progress, hide complete
+        if (progressSection) progressSection.classList.remove("hidden");
+        if (completeSection) completeSection.classList.add("hidden");
+      }
+    },
+
+    updateSidebar: function () {
+      // Update both desktop and mobile sidebars
+      const sidebars = [
+        document.getElementById("quiz-progress-sidebar"),
+        document.getElementById("quiz-progress-mobile"),
+      ];
+
+      sidebars.forEach((sidebar) => {
+        if (sidebar) {
+          const progress = this.getProgress();
+
+          // Update answered count
+          const answeredEl = sidebar.querySelector(".quiz-progress-answered");
+          if (answeredEl) {
+            answeredEl.textContent = progress.answered;
+          }
+
+          // Update answered percentage - desktop only
+          const answeredPercentageEl = sidebar.querySelector(".quiz-progress-answered-percentage");
+          if (answeredPercentageEl && sidebar.id == "quiz-progress-sidebar") {
+            answeredPercentageEl.textContent = progress.percentage + "%";
+          }
+
+          // Update all .quiz-progress-total elements
+          const totalElements = sidebar.querySelectorAll(".quiz-progress-total");
+          totalElements.forEach((el) => {
+            el.textContent = progress.total;
+          });
+
+          // Update correct count
+          const scoreEl = sidebar.querySelector(".quiz-progress-score");
+          if (scoreEl) {
+            scoreEl.textContent = progress.correct;
+          }
+
+          // Update correct denominator (answered count)
+          const scoreTotalEl = sidebar.querySelector(".quiz-progress-score-total");
+          if (scoreTotalEl) {
+            scoreTotalEl.textContent = progress.answered;
+          }
+
+          // Update correct percentage (based on answered quizzes, not total) - desktop only
+          const scorePercentageEl = sidebar.querySelector(".quiz-progress-score-percentage");
+          if (scorePercentageEl && sidebar.id == "quiz-progress-sidebar") {
+            const scorePercentage =
+              progress.answered > 0 ? Math.round((progress.correct / progress.answered) * 100) : 0;
+            scorePercentageEl.textContent = scorePercentage + "%";
+          }
+
+          // Update progress bars (incorrect and correct)
+          const correctBar = sidebar.querySelector(".quiz-progress-bar-correct");
+          const incorrectBar = sidebar.querySelector(".quiz-progress-bar-incorrect");
+
+          if (correctBar && incorrectBar) {
+            const incorrectCount = progress.answered - progress.correct;
+            const correctPercentage = progress.total > 0 ? (progress.correct / progress.total) * 100 : 0;
+            const incorrectPercentage = progress.total > 0 ? (incorrectCount / progress.total) * 100 : 0;
+
+            incorrectBar.style.width = incorrectPercentage + "%";
+            correctBar.style.width = correctPercentage + "%";
+          }
+        }
+      });
+    },
+
+    createSidebar: function () {
+      // Check if progress tracking is enabled
+      const showProgress = window.mkdocsQuizConfig && window.mkdocsQuizConfig.showProgress !== false;
+
+      // Only show sidebar if progress tracking is enabled and there are quizzes
+      if (!showProgress || this.totalQuizzes === 0) {
+        return;
+      }
+
+      // Show both desktop and mobile sidebars
+      const desktopSidebar = document.getElementById("quiz-progress-sidebar");
+      const mobileSidebar = document.getElementById("quiz-progress-mobile");
+
+      if (desktopSidebar) {
+        desktopSidebar.style.display = "";
+      }
+      if (mobileSidebar) {
+        mobileSidebar.style.display = "";
+      }
+
+      // Initialize reset button event listeners
+      const resetLinks = document.querySelectorAll(".quiz-reset-all-link");
+      resetLinks.forEach((resetLink) => {
+        const handler = (e) => {
+          e.preventDefault();
+          if (confirm(t("Are you sure you want to reset the quiz? This will clear your progress."))) {
+            quizTracker.resetAllQuiz();
+          }
+        };
+        addTrackedEventListener(resetLink, "click", handler);
+      });
+
+      // Update the sidebar with initial values
+      this.updateSidebar();
+    },
+
+    showStorageWarning: function (message) {
+      // Show a warning banner in the progress tracker if it exists
+      const progressSidebar = document.getElementById("quiz-progress-sidebar");
+      if (progressSidebar) {
+        // Check if warning already exists
+        let warningEl = progressSidebar.querySelector(".quiz-storage-warning");
+        if (!warningEl) {
+          warningEl = document.createElement("div");
+          warningEl.className = "quiz-storage-warning";
+          warningEl.style.cssText =
+            "background: #fff3cd; color: #856404; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 12px; border: 1px solid #ffeaa7;";
+          progressSidebar.insertBefore(warningEl, progressSidebar.firstChild);
+        }
+        warningEl.textContent = message;
+      }
+    },
+  };
+
+  // Truncate text to a maximum length, adding ellipsis if needed
+  function truncateText(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trimEnd() + "\u2026";
+  }
+
+  // Collect feedback HTML from a NodeList of input elements.
+  // Returns an array of {label, html} objects (one per answer that has feedback).
+  function collectFeedbackFromNodeList(nodeList) {
+    var items = [];
+    nodeList.forEach(function (input) {
+      var fb = input.parentElement.querySelector(".answer-feedback");
+      if (fb && fb.innerHTML.trim()) {
+        var label = input.parentElement.querySelector("label");
+        var labelText = label ? label.textContent.trim() : "";
+        items.push({ label: labelText, html: fb.innerHTML });
+      }
+    });
+    return items;
+  }
+
+  // Try to collect feedback from selected inputs, falling back to correct inputs if configured.
+  // Returns an array of {label, html} objects.
+  function collectFeedbackForSelectedOrCorrect(fieldset, quiz) {
+    var items = collectFeedbackFromNodeList(fieldset.querySelectorAll('input[name="answer"]:checked'));
+    if (!items.length && quiz.hasAttribute("data-show-correct")) {
+      items = collectFeedbackFromNodeList(fieldset.querySelectorAll('input[name="answer"][data-correct="true"]'));
+    }
+    return items;
+  }
+
+  // Build feedback container HTML from an array of {label, html} items.
+  // Each item becomes its own styled feedback box with a badge showing the answer label.
+  function buildFeedbackHTML(items, cssClass) {
+    if (!items.length) return "";
+    var maxBadgeLen = 30;
+    var result = "";
+    items.forEach(function (item) {
+      var badge = "";
+      if (item.label) {
+        var escaped = item.label
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+        badge =
+          '<span class="quiz-feedback-badge" title="' + escaped + '">' + truncateText(escaped, maxBadgeLen) + "</span>";
+      }
+      result +=
+        '<div class="quiz-feedback-item ' +
+        cssClass +
+        '">' +
+        badge +
+        '<div class="quiz-feedback-item-content">' +
+        item.html +
+        "</div></div>";
+    });
+    return result;
+  }
+
+  // Wrap content in a single feedback item div with the given CSS class
+  function wrapFeedbackItem(cssClass, content) {
+    return (
+      '<div class="quiz-feedback-item ' +
+      cssClass +
+      '"><div class="quiz-feedback-item-content">' +
+      content +
+      "</div></div>"
+    );
+  }
+
+  // Get default feedback message based on submission correctness and retry status
+  function getDefaultFeedbackMessage(isCorrect, canRetry) {
+    if (isCorrect) return t("Correct answer!");
+    return canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+  }
+
+  // Mark answer elements with correct/wrong classes based on selection and correctness
+  function markAnswers(selectedAnswers, correctAnswers, quiz, isCorrect) {
+    selectedAnswers.forEach((answer) => {
+      if (isCorrect) {
+        // All selected answers are correct (since it's multiple correct)
+        answer.parentElement.classList.add("correct");
+      } else {
+        // Mark selected wrong answers, keep correct ones highlighted
+        const isAnswerCorrect = answer.hasAttribute("data-correct");
+        answer.parentElement.classList.toggle("wrong", !isAnswerCorrect);
+        answer.parentElement.classList.toggle("correct", isAnswerCorrect);
+      }
+    });
+
+    // If show-correct is enabled, also highlight unselected correct answers on incorrect submission
+    if (!isCorrect && quiz.hasAttribute("data-show-correct")) {
+      correctAnswers.forEach((a) => a.parentElement.classList.add("correct"));
+    }
+  }
+
+  // Display feedback message and styling after quiz submission
+  function showFeedback(feedbackDiv, isCorrect, selectedAnswers, correctAnswers, fieldset, quiz) {
+    feedbackDiv.classList.remove("hidden");
+
+    // Collect per-answer feedback items
+    var cssClass = isCorrect ? "correct" : "incorrect";
+    var items = isCorrect
+      ? collectFeedbackForSelectedOrCorrect(fieldset, quiz)
+      : collectFeedbackFromNodeList(selectedAnswers);
+
+    var html = buildFeedbackHTML(items, cssClass);
+    if (html) {
+      feedbackDiv.innerHTML = html;
+    } else {
+      // No per-answer feedback — show a single default message box
+      var canRetry = !quiz.hasAttribute("data-disable-after-submit");
+      feedbackDiv.innerHTML = wrapFeedbackItem(cssClass, getDefaultFeedbackMessage(isCorrect, canRetry));
+    }
+  }
+
+  // Initialize results div reset button
+  function initializeResultsDiv() {
+    const resultsDiv = document.getElementById("quiz-results");
+    if (!resultsDiv) return;
+
+    const resetButton = resultsDiv.querySelector(".quiz-results-reset");
+    if (resetButton) {
+      const handler = () => {
+        if (confirm(t("Are you sure you want to reset the quiz? This will clear your progress."))) {
+          quizTracker.resetAllQuiz();
+        }
+      };
+      addTrackedEventListener(resetButton, "click", handler);
+    }
+  }
+
+  // Initialize intro reset buttons
+  function initializeIntroResetButtons() {
+    const introResetButtons = document.querySelectorAll(".quiz-intro-reset");
+    introResetButtons.forEach((button) => {
+      const handler = () => {
+        if (confirm(t("Are you sure you want to reset the quiz? This will clear your progress."))) {
+          quizTracker.resetAllQuiz();
+        }
+      };
+      addTrackedEventListener(button, "click", handler);
+    });
+  }
+
+  // Shuffle an array using Fisher-Yates algorithm
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Shuffle the answer elements in a fieldset
+  function shuffleAnswers(fieldset) {
+    const answerDivs = Array.from(fieldset.querySelectorAll(":scope > div"));
+    if (answerDivs.length <= 1) return;
+
+    // Shuffle the array of elements
+    shuffleArray(answerDivs);
+
+    // Re-append elements in shuffled order
+    answerDivs.forEach((div) => fieldset.appendChild(div));
+  }
+
+  // Initialize all quiz elements on the page
+  function initializeQuizzes() {
+    document.querySelectorAll(".quiz").forEach((quiz) => {
+      let form = quiz.querySelector("form");
+      let fieldset = form.querySelector("fieldset");
+      let submitButton = form.querySelector('button[type="submit"]');
+      let feedbackDiv = form.querySelector(".quiz-feedback");
+
+      // Shuffle answers if enabled (before any state restoration)
+      if (quiz.hasAttribute("data-shuffle-answers")) {
+        shuffleAnswers(fieldset);
+      }
+
+      // Get quiz ID from the quiz div itself
+      const quizId = quiz.id;
+
+      // Check if this is a fill-in-the-blank quiz
+      const isFillBlank = quiz.hasAttribute("data-quiz-type") && quiz.getAttribute("data-quiz-type") === "fill-blank";
+
+      // Prevent anchor link from triggering page navigation/reload
+      const headerLink = quiz.querySelector(".quiz-header-link");
+      if (headerLink) {
+        const handler = (e) => {
+          // Let the browser handle the anchor navigation normally
+          // This prevents Material themes from intercepting it as a page navigation
+          e.stopPropagation();
+        };
+        addTrackedEventListener(headerLink, "click", handler);
+      }
+
+      // Create reset button (initially hidden)
+      let resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.className = "quiz-button quiz-reset-button hidden";
+      resetButton.textContent = t("Try Again");
+      if (submitButton) {
+        submitButton.parentNode.insertBefore(resetButton, submitButton.nextSibling);
+      } else {
+        form.appendChild(resetButton);
+      }
+
+      // Helper function to normalize answers (trim whitespace, case-insensitive)
+      function normalizeAnswer(answer) {
+        return answer.trim().toLowerCase();
+      }
+
+      // Restore quiz state from localStorage if available
+      if (quizId && quizTracker.quizzes[quizId]) {
+        const savedState = quizTracker.quizzes[quizId];
+        const section = quiz.querySelector("section");
+
+        if (isFillBlank) {
+          // Restore fill-in-the-blank quiz state
+          const blankInputs = quiz.querySelectorAll(".quiz-blank-input");
+
+          if (savedState.answered) {
+            // Restore input values based on saved values
+            if (savedState.selectedValues && savedState.selectedValues.length > 0) {
+              blankInputs.forEach((input, index) => {
+                if (savedState.selectedValues[index] !== undefined) {
+                  input.value = savedState.selectedValues[index];
+                }
+              });
+            }
+
+            if (savedState.correct) {
+              // Show correct feedback
+              if (section) {
+                section.classList.remove("hidden");
+              }
+              feedbackDiv.classList.remove("hidden");
+              feedbackDiv.innerHTML = wrapFeedbackItem("correct", getDefaultFeedbackMessage(true, false));
+
+              // Mark all inputs as correct
+              blankInputs.forEach((input) => {
+                input.classList.add("correct");
+              });
+
+              // Disable inputs if disable-after-submit is enabled
+              if (quiz.hasAttribute("data-disable-after-submit")) {
+                blankInputs.forEach((input) => {
+                  input.disabled = true;
+                });
+                if (submitButton) {
+                  submitButton.disabled = true;
+                }
+                resetButton.classList.add("hidden");
+              } else {
+                resetButton.classList.remove("hidden");
+                if (submitButton) {
+                  submitButton.classList.add("hidden");
+                }
+              }
+            } else {
+              // Restore incorrect answer state
+              if (section) {
+                section.classList.remove("hidden");
+              }
+
+              // Mark wrong/correct inputs
+              blankInputs.forEach((input) => {
+                const userAnswer = normalizeAnswer(input.value);
+                const correctAnswer = normalizeAnswer(input.getAttribute("data-answer"));
+
+                if (userAnswer === correctAnswer) {
+                  input.classList.add("correct");
+                } else {
+                  input.classList.add("wrong");
+                }
+              });
+
+              // Show incorrect feedback with detailed list
+              feedbackDiv.classList.remove("hidden");
+              var canRetryRestore = !quiz.hasAttribute("data-disable-after-submit");
+              var feedbackTextRestore = getDefaultFeedbackMessage(false, canRetryRestore);
+
+              // Show correct answers if show-correct is enabled
+              if (quiz.hasAttribute("data-show-correct")) {
+                var fillRestoreHTML = feedbackTextRestore + "<ul>";
+                blankInputs.forEach(function (input) {
+                  if (!input.classList.contains("correct")) {
+                    var userAnswer = input.value.trim();
+                    var correctAnswer = input.getAttribute("data-answer");
+                    fillRestoreHTML +=
+                      "<li><del>" + (userAnswer || t("(empty)")) + "</del> \u2192 " + correctAnswer + "</li>";
+                    // Also show in placeholder
+                    input.placeholder = correctAnswer;
+                  }
+                });
+                fillRestoreHTML += "</ul>";
+                feedbackDiv.innerHTML = wrapFeedbackItem("incorrect", fillRestoreHTML);
+              } else {
+                feedbackDiv.innerHTML = wrapFeedbackItem("incorrect", feedbackTextRestore);
+              }
+
+              // Disable inputs if disable-after-submit is enabled
+              if (quiz.hasAttribute("data-disable-after-submit")) {
+                blankInputs.forEach((input) => {
+                  input.disabled = true;
+                });
+                if (submitButton) {
+                  submitButton.disabled = true;
+                }
+                resetButton.classList.add("hidden");
+              } else {
+                // Keep submit button visible for editing and resubmission
+                resetButton.classList.remove("hidden");
+              }
+            }
+          }
+        } else {
+          // Restore multiple-choice quiz state (existing code)
+          const allAnswers = fieldset.querySelectorAll('input[name="answer"]');
+          const correctAnswers = fieldset.querySelectorAll('input[name="answer"][data-correct="true"]');
+
+          if (savedState.answered) {
+            // Restore selected answers based on saved values
+            if (savedState.selectedValues && savedState.selectedValues.length > 0) {
+              allAnswers.forEach((input) => {
+                if (savedState.selectedValues.includes(input.value)) {
+                  input.checked = true;
+                }
+              });
+            }
+
+            if (savedState.correct) {
+              // Show the content section
+              if (section) {
+                section.classList.remove("hidden");
+              }
+
+              // Only mark the correct answers in green (don't highlight wrong answers)
+              allAnswers.forEach((input) => {
+                if (input.hasAttribute("data-correct")) {
+                  input.parentElement.classList.add("correct");
+                }
+              });
+
+              // Show correct feedback - prefer per-answer feedback if present
+              feedbackDiv.classList.remove("hidden");
+              var correctItems = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
+              var correctFeedbackHTML = buildFeedbackHTML(correctItems, "correct");
+              feedbackDiv.innerHTML =
+                correctFeedbackHTML || wrapFeedbackItem("correct", getDefaultFeedbackMessage(true, false));
+
+              // Disable inputs if disable-after-submit is enabled
+              if (quiz.hasAttribute("data-disable-after-submit")) {
+                allAnswers.forEach((input) => {
+                  input.disabled = true;
+                });
+                if (submitButton) {
+                  submitButton.disabled = true;
+                }
+                resetButton.classList.add("hidden");
+              } else {
+                // Show reset button, hide submit button
+                resetButton.classList.remove("hidden");
+                if (submitButton) {
+                  submitButton.classList.add("hidden");
+                }
+              }
+            } else {
+              // Restore incorrect answer state
+              const selectedAnswers = Array.from(allAnswers).filter((input) =>
+                savedState.selectedValues.includes(input.value),
+              );
+
+              // Show the content section for incorrect answers too
+              if (section) {
+                section.classList.remove("hidden");
+              }
+
+              // Mark selected answers
+              selectedAnswers.forEach((input) => {
+                if (input.hasAttribute("data-correct")) {
+                  input.parentElement.classList.add("correct");
+                } else {
+                  input.parentElement.classList.add("wrong");
+                }
+              });
+
+              // Show correct answers if show-correct is enabled
+              if (quiz.hasAttribute("data-show-correct")) {
+                correctAnswers.forEach((input) => {
+                  input.parentElement.classList.add("correct");
+                });
+              }
+
+              // Show incorrect feedback - prefer per-answer feedback for selected answers
+              feedbackDiv.classList.remove("hidden");
+              var canRetry = !quiz.hasAttribute("data-disable-after-submit");
+              var incorrectItems = collectFeedbackFromNodeList(
+                fieldset.querySelectorAll('input[name="answer"]:checked'),
+              );
+              var incorrectFeedbackHTML = buildFeedbackHTML(incorrectItems, "incorrect");
+              feedbackDiv.innerHTML =
+                incorrectFeedbackHTML || wrapFeedbackItem("incorrect", getDefaultFeedbackMessage(false, canRetry));
+
+              // Disable inputs if disable-after-submit is enabled
+              if (quiz.hasAttribute("data-disable-after-submit")) {
+                allAnswers.forEach((input) => {
+                  input.disabled = true;
+                });
+                if (submitButton) {
+                  submitButton.disabled = true;
+                }
+                resetButton.classList.add("hidden");
+              } else {
+                // Show reset button, hide submit button
+                resetButton.classList.remove("hidden");
+                if (submitButton) {
+                  submitButton.classList.add("hidden");
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Auto-submit on radio button change if enabled (not for fill-in-blank)
+      if (!isFillBlank && quiz.hasAttribute("data-auto-submit")) {
+        let radioButtons = fieldset.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach((radio) => {
+          const handler = (e) => {
+            e.preventDefault(); // Prevent page scroll to top
+            // Trigger form submission with proper event options
+            form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+          };
+          addTrackedEventListener(radio, "change", handler);
+        });
+      }
+
+      // Reset button handler
+      const resetHandler = () => {
+        if (isFillBlank) {
+          // Clear fill-in-the-blank inputs
+          const blankInputs = quiz.querySelectorAll(".quiz-blank-input");
+          blankInputs.forEach((input) => {
+            input.value = "";
+            input.disabled = false;
+            input.classList.remove("correct", "wrong");
+            input.placeholder = "";
+          });
+        } else {
+          // Clear all selections
+          const allInputs = fieldset.querySelectorAll('input[name="answer"]');
+          allInputs.forEach((input) => {
+            input.checked = false;
+            input.disabled = false;
+          });
+          // Reset colors
+          resetFieldset(fieldset);
+        }
+        // Hide content section
+        let section = quiz.querySelector("section");
+        if (section) {
+          section.classList.add("hidden");
+        }
+        // Hide feedback container
+        feedbackDiv.classList.add("hidden");
+        feedbackDiv.innerHTML = "";
+        // Show submit button, hide reset button
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.classList.remove("hidden");
+        }
+        resetButton.classList.add("hidden");
+        // Update tracker
+        if (quizId) {
+          quizTracker.resetQuiz(quizId);
+        }
+      };
+      addTrackedEventListener(resetButton, "click", resetHandler);
+
+      const submitHandler = (event) => {
+        event.preventDefault();
+        event.stopPropagation(); // Prevent Material themes from intercepting form submission
+        let is_correct = false;
+        let selectedValues = [];
+        let section = quiz.querySelector("section");
+
+        if (isFillBlank) {
+          // Handle fill-in-the-blank quiz
+          const blankInputs = quiz.querySelectorAll(".quiz-blank-input");
+          is_correct = true;
+
+          // Collect user answers and validate
+          blankInputs.forEach((input) => {
+            const userAnswer = normalizeAnswer(input.value);
+            const correctAnswer = normalizeAnswer(input.getAttribute("data-answer"));
+            selectedValues.push(input.value); // Save original value, not normalized
+
+            // Remove previous classes
+            input.classList.remove("correct", "wrong");
+
+            if (userAnswer === correctAnswer) {
+              input.classList.add("correct");
+            } else {
+              input.classList.add("wrong");
+              is_correct = false;
+            }
+          });
+
+          // Always show the content section after submission
+          if (section) {
+            section.classList.remove("hidden");
+          }
+
+          if (is_correct) {
+            // Show correct feedback
+            feedbackDiv.classList.remove("hidden");
+            feedbackDiv.innerHTML = wrapFeedbackItem("correct", getDefaultFeedbackMessage(true, false));
+          } else {
+            // Show incorrect feedback with detailed list
+            feedbackDiv.classList.remove("hidden");
+            var canRetryFill = !quiz.hasAttribute("data-disable-after-submit");
+            var feedbackTextFill = getDefaultFeedbackMessage(false, canRetryFill);
+
+            // Show correct answers if show-correct is enabled
+            if (quiz.hasAttribute("data-show-correct")) {
+              var fillHTML = feedbackTextFill + "<ul>";
+              blankInputs.forEach(function (input) {
+                if (!input.classList.contains("correct")) {
+                  var userAnswer = input.value.trim();
+                  var correctAnswer = input.getAttribute("data-answer");
+                  fillHTML += "<li><del>" + (userAnswer || "(empty)") + "</del> \u2192 " + correctAnswer + "</li>";
+                  // Also show in placeholder
+                  input.placeholder = correctAnswer;
+                }
+              });
+              fillHTML += "</ul>";
+              feedbackDiv.innerHTML = wrapFeedbackItem("incorrect", fillHTML);
+            } else {
+              feedbackDiv.innerHTML = wrapFeedbackItem("incorrect", feedbackTextFill);
+            }
+          }
+
+          // Disable quiz after submission if option is enabled
+          if (quiz.hasAttribute("data-disable-after-submit")) {
+            blankInputs.forEach((input) => {
+              input.disabled = true;
+            });
+            if (submitButton) {
+              submitButton.disabled = true;
+            }
+            resetButton.classList.add("hidden");
+          } else {
+            // For fill-in-blank, keep submit button visible so users can edit and resubmit
+            // Only show reset button as an alternative
+            resetButton.classList.remove("hidden");
+          }
+        } else {
+          // Handle multiple-choice quiz (existing code)
+          let selectedAnswers = form.querySelectorAll('input[name="answer"]:checked');
+          let correctAnswers = fieldset.querySelectorAll('input[name="answer"][data-correct="true"]');
+          // Check if all correct answers are selected
+          is_correct = selectedAnswers.length === correctAnswers.length;
+          Array.from(selectedAnswers).forEach((answer) => {
+            if (!answer.hasAttribute("data-correct")) {
+              is_correct = false;
+            }
+          });
+
+          // Always show the content section after submission
+          if (section) {
+            section.classList.remove("hidden");
+          }
+
+          if (is_correct) {
+            resetFieldset(fieldset);
+            markAnswers(selectedAnswers, correctAnswers, quiz, true);
+            showFeedback(feedbackDiv, true, selectedAnswers, correctAnswers, fieldset, quiz);
+          } else {
+            resetFieldset(fieldset);
+            markAnswers(selectedAnswers, correctAnswers, quiz, false);
+            showFeedback(feedbackDiv, false, selectedAnswers, correctAnswers, fieldset, quiz);
+          }
+
+          // Get selected values to save
+          selectedValues = Array.from(selectedAnswers).map((input) => input.value);
+
+          // Disable quiz after submission if option is enabled
+          if (quiz.hasAttribute("data-disable-after-submit")) {
+            const allInputs = fieldset.querySelectorAll('input[name="answer"]');
+            allInputs.forEach((input) => {
+              input.disabled = true;
+            });
+            if (submitButton) {
+              submitButton.disabled = true;
+            }
+            // Hide reset button if disable-after-submit is enabled
+            resetButton.classList.add("hidden");
+          } else {
+            // Show reset button and hide submit button
+            resetButton.classList.remove("hidden");
+            if (submitButton) {
+              submitButton.classList.add("hidden");
+            }
+          }
+        }
+
+        // Move focus to feedback div for screen readers and keyboard users
+        if (feedbackDiv) {
+          feedbackDiv.setAttribute("tabindex", "-1");
+          feedbackDiv.focus();
+        }
+
+        // Update tracker
+        if (quizId) {
+          quizTracker.markQuiz(quizId, is_correct, selectedValues);
+        }
+      };
+      addTrackedEventListener(form, "submit", submitHandler);
+    });
+  }
+
+  function resetFieldset(fieldset) {
+    Array.from(fieldset.children).forEach((child) => {
+      child.classList.remove("wrong", "correct");
+    });
+  }
+
+  // Main initialization function that sets up everything on a page
+  function initializePage() {
+    // Initialize tracker
+    quizTracker.init();
+
+    // Reposition sidebar for Material theme TOC integration
+    repositionSidebar();
+
+    // Create sidebar
+    quizTracker.createSidebar();
+
+    // Initialize results div and intro buttons
+    initializeResultsDiv();
+    initializeIntroResetButtons();
+
+    // Initialize all quiz elements
+    initializeQuizzes();
+  }
+
+  // Run initialization when DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializePage);
+  } else {
+    initializePage();
+  }
+
+  // Material theme instant navigation support
+  // Cleanup and reinitialize when navigating between pages
+  if (typeof document$ !== "undefined") {
+    // Unsubscribe from any previous subscription to prevent duplicate handlers
+    // This is needed because the script re-runs on each page navigation,
+    // which would otherwise accumulate subscriptions
+    if (window._mkdocsQuizSubscription) {
+      window._mkdocsQuizSubscription.unsubscribe();
+    }
+
+    // A Material theme with instant navigation is active
+    window._mkdocsQuizSubscription = document$.subscribe(() => {
+      cleanup(); // Remove old event listeners to prevent memory leaks
+      // Reinitialize everything for the new page
+      initializePage();
+    });
+  }
+})(); // End of IIFE
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Introduction">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256l137.3-137.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Introduction
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../API/" class="md-footer__link md-footer__link--next" aria-label="Next: OpenAPI">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                OpenAPI
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M247.1 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L179.2 256 41.9 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

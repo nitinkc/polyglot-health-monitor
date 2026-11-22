@@ -1,0 +1,121 @@
+<mxfile host="Electron">
+  <diagram id="architecture" name="Architecture">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="mons" value="&lt;b&gt;polyglot-health-monitor&lt;/b&gt;&lt;br&gt;one contract — 4 implementations" style="swimlane;startSize=40;fillColor=#f5f5f5;strokeColor=#666666;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="260" height="360" as="geometry"/>
+        </mxCell>
+        <mxCell id="mj" value="Java&lt;br&gt;implementations/java" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="mons">
+          <mxGeometry x="30" y="50" width="200" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="mg" value="Go&lt;br&gt;implementations/go" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="mons">
+          <mxGeometry x="30" y="104" width="200" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="mp" value="Python&lt;br&gt;implementations/python" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="mons">
+          <mxGeometry x="30" y="158" width="200" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="mt" value="TypeScript&lt;br&gt;implementations/typescript" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="mons">
+          <mxGeometry x="30" y="212" width="200" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="mdb" value="monitor.db&lt;br&gt;check_results (SQLite)" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="mons">
+          <mxGeometry x="75" y="272" width="110" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="compose" value="&lt;b&gt;Docker Compose — network: fixtures&lt;/b&gt;&lt;br&gt;deterministic .local aliases · host ports 9xxx" style="swimlane;startSize=44;fillColor=#e8f4f8;strokeColor=#4aa3b8;html=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="40" width="420" height="400" as="geometry"/>
+        </mxCell>
+        <mxCell id="iOk" value="&lt;b&gt;ok.local&lt;/b&gt; :9001&lt;br&gt;fast 200" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="compose">
+          <mxGeometry x="20" y="56" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iJit" value="&lt;b&gt;jitter.local&lt;/b&gt; :9002&lt;br&gt;15ms + spikes→800ms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="compose">
+          <mxGeometry x="220" y="56" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iSlow" value="&lt;b&gt;slow.local&lt;/b&gt; :9003&lt;br&gt;5s holds → timeouts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="compose">
+          <mxGeometry x="20" y="112" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iFlaky" value="&lt;b&gt;flaky.local&lt;/b&gt; :9004&lt;br&gt;3×503 / 3×200" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="compose">
+          <mxGeometry x="220" y="112" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iErr" value="&lt;b&gt;errors.local&lt;/b&gt; :9005&lt;br&gt;~50% random 5xx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="compose">
+          <mxGeometry x="20" y="168" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iRst" value="&lt;b&gt;reset.local&lt;/b&gt; :9006&lt;br&gt;TCP RST every conn" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="compose">
+          <mxGeometry x="220" y="168" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iNetem" value="&lt;b&gt;netem.local&lt;/b&gt; :9007&lt;br&gt;tc netem 150ms · 5% loss" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="compose">
+          <mxGeometry x="20" y="224" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iEast" value="&lt;b&gt;east.local&lt;/b&gt; :9010&lt;br&gt;REGION=east · controllable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="compose">
+          <mxGeometry x="20" y="280" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="iWest" value="&lt;b&gt;west.local&lt;/b&gt; :9011&lt;br&gt;REGION=west · controllable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="compose">
+          <mxGeometry x="220" y="280" width="180" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="cNote" value="all share one image — behavior set by MODE env or POST /chaos/mode" style="text;html=1;align=center;fontSize=10;fontColor=#666666;" vertex="1" parent="compose">
+          <mxGeometry x="20" y="340" width="380" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="mk" value="&lt;b&gt;minikube&lt;/b&gt;" style="swimlane;startSize=30;fillColor=#fff9e6;strokeColor=#d6b656;html=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="40" width="480" height="400" as="geometry"/>
+        </mxCell>
+        <mxCell id="nsE" value="&lt;b&gt;namespace: chaos-east&lt;/b&gt;" style="swimlane;startSize=24;fillColor=#dae8fc;strokeColor=#6c8ebf;html=1;" vertex="1" parent="mk">
+          <mxGeometry x="20" y="40" width="440" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="eSvc" value="svc chaos-target :80&lt;br&gt;NodePort :30080" style="shape=mxgraph.azure.network_interface;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="nsE">
+          <mxGeometry x="20" y="60" width="130" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="ePod1" value="pod ×3&lt;br&gt;MODE=jitter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="nsE">
+          <mxGeometry x="190" y="60" width="110" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="eNote" value="headless svc → per-pod DNS" style="text;html=1;fontSize=10;fontColor=#666666;" vertex="1" parent="nsE">
+          <mxGeometry x="300" y="40" width="140" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="nsW" value="&lt;b&gt;namespace: chaos-west&lt;/b&gt;" style="swimlane;startSize=24;fillColor=#d5e8d4;strokeColor=#82b366;html=1;" vertex="1" parent="mk">
+          <mxGeometry x="20" y="220" width="440" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="wSvc" value="svc chaos-target :80&lt;br&gt;NodePort :30081" style="shape=mxgraph.azure.network_interface;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="nsW">
+          <mxGeometry x="20" y="70" width="130" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="wPod1" value="pods ×2&lt;br&gt;MODE=healthy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="nsW">
+          <mxGeometry x="190" y="40" width="110" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="wPodBad" value="&lt;b&gt;pod ×1&lt;/b&gt;&lt;br&gt;MODE=flapping&lt;br&gt;(born bad)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="nsW">
+          <mxGeometry x="190" y="100" width="110" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="wNote" value="same app=chaos-target selector&lt;br&gt;→ svc randomly hits the bad pod" style="text;html=1;fontSize=10;fontColor=#b85450;" vertex="1" parent="nsW">
+          <mxGeometry x="300" y="80" width="140" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="you" value="&lt;b&gt;You — chaos control&lt;/b&gt;&lt;br&gt;scripts/chaos.sh · chaos-pod.sh&lt;br&gt;audit.sh · reset-all.sh · seed-monitors.sh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="380" y="480" width="240" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a1" edge="1" parent="1" source="mons" target="compose" value="HTTP polls&lt;br&gt;localhost:9xxx or *.local:8080" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a2" edge="1" parent="1" source="mons" target="mk" value="via NodePort&lt;br&gt;$(minikube ip):30080/81" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a3" edge="1" parent="1" source="you" target="compose" value="POST /chaos/*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#9673a6;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a4" edge="1" parent="1" source="you" target="mk" value="kubectl exec" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#9673a6;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a5" edge="1" parent="1" source="eSvc" target="ePod1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a6" edge="1" parent="1" source="wSvc" target="wPod1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a7" edge="1" parent="1" source="wSvc" target="wPodBad" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;dashed=1;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

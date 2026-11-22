@@ -1,0 +1,130 @@
+# chaos-target fixture suite — the "prod-like" upstream fleet your four
+# health-monitor implementations poll against.
+#
+#   cd healthDemo/deploy
+#   docker compose up -d --build
+#
+# Every instance is reachable two ways:
+#   - inside the `fixtures` network by deterministic alias (http://ok.local:8080)
+#   - from the host on its published port (curl http://localhost:9001/health)
+#
+# To point a monitor implementation at a target, either run the monitor on the
+# host and use localhost:9xxx, or attach it to this network and use the
+# .local alias (see the commented `monitor` service at the bottom).
+
+name: chaos-targets
+
+networks:
+  fixtures:
+    driver: bridge
+
+x-target: &target
+  build:
+    context: ../chaos-target
+  networks:
+    fixtures:
+      aliases: []
+  restart: unless-stopped
+
+services:
+
+  # --- the well-behaved baseline -------------------------------------------
+  ok:
+    <<: *target
+    environment: { MODE: healthy, REGION: local }
+    ports: ["9001:8080"]
+    networks:
+      fixtures:
+        aliases: [ok.local, healthy.local]
+
+  # --- jittered latency: ~15ms baseline, occasional 300-800ms spikes --------
+  jitter:
+    <<: *target
+    environment: { MODE: jitter, REGION: local, JITTER_MS: 15, SPIKE_MS: 800 }
+    ports: ["9002:8080"]
+    networks:
+      fixtures:
+        aliases: [jitter.local]
+
+  # --- always-slow: 5s responses — tests client timeout enforcement ---------
+  slow:
+    <<: *target
+    environment: { MODE: slow, REGION: local, SLOW_MS: 5000 }
+    ports: ["9003:8080"]
+    networks:
+      fixtures:
+        aliases: [slow.local, hang.local]
+
+  # --- flapping: 3x 503 then 3x 200, forever — status transition tests ------
+  flaky:
+    <<: *target
+    environment: { MODE: flapping, REGION: local, FLAP_FAIL: 3, FLAP_OK: 3 }
+    ports: ["9004:8080"]
+    networks:
+      fixtures:
+        aliases: [flaky.local, flap.local]
+
+  # --- degraded: ~50% random 5xx + added latency ----------------------------
+  errors:
+    <<: *target
+    environment: { MODE: degraded, REGION: local, ERROR_RATE: "0.5" }
+    ports: ["9005:8080"]
+    networks:
+      fixtures:
+        aliases: [errors.local, bad.local]
+
+  # --- connection-level faults: RST on every request ------------------------
+  reset:
+    <<: *target
+    environment: { MODE: reset, REGION: local }
+    ports: ["9006:8080"]
+    networks:
+      fixtures:
+        aliases: [reset.local, eof.local]
+
+  # --- packet-level chaos: real tc netem delay/loss (needs NET_ADMIN) -------
+  netem:
+    <<: *target
+    user: root            # tc requires root + NET_ADMIN; entrypoint degrades
+    cap_add: [NET_ADMIN]  # gracefully (warns and continues) without them
+    environment:
+      MODE: healthy
+      REGION: local
+      NETEM_DELAY: 150ms
+      NETEM_JITTER: 50ms
+      NETEM_LOSS: "5%"
+    ports: ["9007:8080"]
+    networks:
+      fixtures:
+        aliases: [netem.local]
+
+  # --- controllable "region" instances: healthy until you break them --------
+  # These are the mini-versions of the minikube east/west fleets. Curl their
+  # /chaos/mode endpoints to simulate a bad server appearing mid-run.
+  chaos-east:
+    <<: *target
+    environment: { MODE: healthy, REGION: east, INSTANCE_ID: chaos-east-01 }
+    ports: ["9010:8080"]
+    networks:
+      fixtures:
+        aliases: [east.local]
+
+  chaos-west:
+    <<: *target
+    environment: { MODE: healthy, REGION: west, INSTANCE_ID: chaos-west-01 }
+    ports: ["9011:8080"]
+    networks:
+      fixtures:
+        aliases: [west.local]
+
+# --- example: attach any monitor implementation to the same fabric ----------
+#   docker compose -f deploy/docker-compose.yml --profile monitor up
+#
+# monitor-go:
+#   <<: *target              # replace build: with your monitor's Dockerfile
+#   profiles: [monitor]
+#   networks: [fixtures]
+#   environment:
+#     DB_PATH: /data/monitor.db
+#   # then register monitors like http://ok.local:8080/health,
+#   # http://slow.local:8080/slow, http://flaky.local:8080/flap ...

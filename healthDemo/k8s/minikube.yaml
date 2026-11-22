@@ -1,0 +1,200 @@
+# chaos-target on minikube — two "regions", several instances each, and one
+# pod that's born bad so there's something to find.
+#
+#   minikube start
+#   eval $(minikube docker-env)                       # build into minikube's docker
+#   docker build -t chaos-target:latest healthDemo/chaos-target
+#   kubectl apply -f healthDemo/k8s/minikube.yaml
+#
+# Then:
+#   kubectl get pods -n chaos-east -o wide            # watch them come up
+#   ./scripts/audit.sh                                # per-pod mode table
+#   ./scripts/chaos.sh west <pod-name> down           # break a pod on purpose
+#
+# The west Service's selector (app=chaos-target) matches BOTH deployments, so
+# service traffic occasionally lands on the flapping pod — the "intermittent
+# 503 behind one stable URL" case monitors are built to catch.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chaos-east
+  labels: { region: east }
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chaos-west
+  labels: { region: west }
+---
+# ============================== EAST ========================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-target
+  namespace: chaos-east
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: chaos-target }
+  template:
+    metadata:
+      labels: { app: chaos-target, region: east }
+    spec:
+      containers:
+        - name: chaos-target
+          image: chaos-target:latest
+          imagePullPolicy: IfNotPresent   # locally-built image; use Never if you always build in-cluster
+          env:
+            - { name: REGION, value: east }
+            - { name: MODE, value: jitter }
+            - { name: INSTANCE_ID, valueFrom: { fieldRef: { fieldPath: metadata.name } } }
+          ports:
+            - { containerPort: 8080, name: http }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 200m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-target
+  namespace: chaos-east
+spec:
+  selector: { app: chaos-target }
+  ports:
+    - { port: 80, targetPort: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-target-headless          # per-pod DNS: <pod>.chaos-target-headless.chaos-east.svc
+  namespace: chaos-east
+spec:
+  clusterIP: None
+  selector: { app: chaos-target }
+  ports:
+    - { port: 80, targetPort: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-target-nodeport          # host access: $(minikube ip):30080
+  namespace: chaos-east
+spec:
+  type: NodePort
+  selector: { app: chaos-target }
+  ports:
+    - { port: 80, targetPort: http, nodePort: 30080 }
+---
+# ============================== WEST ========================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-target
+  namespace: chaos-west
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: chaos-target }
+  template:
+    metadata:
+      labels: { app: chaos-target, region: west, fleet: main }
+    spec:
+      containers:
+        - name: chaos-target
+          image: chaos-target:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - { name: REGION, value: west }
+            - { name: MODE, value: healthy }
+            - { name: INSTANCE_ID, valueFrom: { fieldRef: { fieldPath: metadata.name } } }
+          ports:
+            - { containerPort: 8080, name: http }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 200m, memory: 64Mi }
+---
+# The bad apple: same `app` label => it joins the same Service endpoints.
+# MODE=flapping also makes its readinessProbe flap, so `kubectl get pods`
+# shows it going 0/1 in step with the data plane.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-target-bad
+  namespace: chaos-west
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: chaos-target, fleet: bad }
+  template:
+    metadata:
+      labels: { app: chaos-target, region: west, fleet: bad }
+    spec:
+      containers:
+        - name: chaos-target
+          image: chaos-target:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - { name: REGION, value: west }
+            - { name: MODE, value: flapping }
+            - { name: FLAP_FAIL, value: "3" }
+            - { name: FLAP_OK, value: "5" }
+            - { name: INSTANCE_ID, valueFrom: { fieldRef: { fieldPath: metadata.name } } }
+          ports:
+            - { containerPort: 8080, name: http }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 200m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-target
+  namespace: chaos-west
+spec:
+  selector: { app: chaos-target }
+  ports:
+    - { port: 80, targetPort: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-target-headless
+  namespace: chaos-west
+spec:
+  clusterIP: None
+  selector: { app: chaos-target }
+  ports:
+    - { port: 80, targetPort: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-target-nodeport
+  namespace: chaos-west
+spec:
+  type: NodePort
+  selector: { app: chaos-target }
+  ports:
+    - { port: 80, targetPort: http, nodePort: 30081 }

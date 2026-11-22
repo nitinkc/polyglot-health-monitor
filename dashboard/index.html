@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polyglot Health Monitor — Dashboard</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+    --muted: #8b949e; --green: #3fb950; --red: #f85149; --amber: #d29922;
+    --blue: #58a6ff; --grey: #6e7681;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.5 -apple-system, "SF Mono", "Cascadia Code", Menlo, monospace; }
+  header { padding: 16px 24px; border-bottom: 1px solid var(--border);
+           display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 18px; margin: 0; }
+  header .meta { color: var(--muted); font-size: 12px; }
+  main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+          gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border);
+          border-radius: 8px; padding: 14px 16px; }
+  .card h2 { font-size: 15px; margin: 0; display: flex; align-items: center; gap: 10px; }
+  .card .sub { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .badges { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px;
+           border: 1px solid var(--border); }
+  .b-green { color: var(--green); border-color: var(--green); }
+  .b-red { color: var(--red); border-color: var(--red); }
+  .b-grey { color: var(--grey); border-color: var(--grey); }
+  .b-blue { color: var(--blue); border-color: var(--blue); }
+  .b-amber { color: var(--amber); border-color: var(--amber); }
+  .progress { height: 6px; background: #21262d; border-radius: 3px;
+              overflow: hidden; margin: 8px 0 12px; }
+  .progress > div { height: 100%; background: var(--green); transition: width .4s; }
+  .progress.partial > div { background: var(--amber); }
+  .progress.failed > div { background: var(--red); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #21262d;
+           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+           max-width: 260px; }
+  th { color: var(--muted); font-weight: 600; }
+  .chk { display: flex; gap: 8px; align-items: baseline; padding: 3px 0;
+         border-bottom: 1px solid #21262d; font-size: 12px; }
+  .chk .name { flex: 1; }
+  .chk .actual { color: var(--muted); }
+  .chk .lat { color: var(--grey); min-width: 52px; text-align: right; }
+  .icon-pass { color: var(--green); } .icon-fail { color: var(--red); }
+  .icon-skip { color: var(--grey); }
+  .btnrow { display: flex; gap: 8px; margin-top: 10px; }
+  button { background: #21262d; color: var(--text); border: 1px solid var(--border);
+           border-radius: 6px; padding: 4px 12px; font: inherit; font-size: 12px;
+           cursor: pointer; }
+  button:hover { border-color: var(--blue); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { border-color: var(--green); color: var(--green); }
+  button.danger { border-color: var(--red); color: var(--red); }
+  pre.logs { background: #0a0c10; border: 1px solid var(--border); border-radius: 6px;
+             padding: 10px; margin-top: 10px; max-height: 220px; overflow: auto;
+             font-size: 11px; color: var(--muted); white-space: pre-wrap; }
+  .dbwrap { margin-top: 20px; display: grid;
+            grid-template-columns: minmax(420px, 5fr) minmax(420px, 7fr); gap: 16px; }
+  @media (max-width: 960px) { .dbwrap { grid-template-columns: 1fr; } }
+  .scroll { overflow: auto; max-height: 340px; }
+  .st-UP { color: var(--green); } .st-DOWN { color: var(--red); }
+  .st-UNKNOWN { color: var(--amber); }
+  .ok-1 { color: var(--green); } .ok-0 { color: var(--red); }
+  h3 { font-size: 13px; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  .down-note { color: var(--muted); font-size: 12px; padding: 8px 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-filename="app.tsx" data-presets="typescript,react">
+const { useState, useEffect, useCallback, useRef } = React;
+
+interface Check {
+  name: string; expected: string; actual: string;
+  result: "pass" | "fail" | "skip"; latency_ms: number | null;
+}
+interface Probe { up: boolean; checks: Check[]; passed: number; total: number; skipped: number; }
+interface Lang {
+  key: string; name: string; port: number;
+  managed: boolean; proc_running: boolean; pid: number | null;
+  uptime_s: number | null; external: boolean; probe: Probe;
+}
+interface MonitorRow {
+  id: string; name: string; url: string; interval_seconds: number;
+  status: string; consecutive_failures: number; updated_at: string;
+}
+interface ResultRow {
+  monitor_name: string | null; checked_at: string; success: number;
+  status_code: number | null; latency_ms: number | null; error: string | null;
+}
+interface DbSnap {
+  path: string; exists: boolean; mtime?: string; error?: string;
+  monitors: MonitorRow[]; recent_results: ResultRow[];
+  counts: { monitors?: number; check_results?: number };
+}
+interface Dash {
+  generated_at: string; db: DbSnap; languages: Lang[];
+}
+
+function Badge(props: { cls: string; children: React.ReactNode }) {
+  return <span className={"badge " + props.cls}>{props.children}</span>;
+}
+
+function fmtUptime(s: number | null): string {
+  if (s == null) return "";
+  if (s < 60) return s + "s";
+  if (s < 3600) return Math.floor(s / 60) + "m";
+  return Math.floor(s / 3600) + "h " + Math.floor((s % 3600) / 60) + "m";
+}
+
+function CheckRow(props: { c: Check }) {
+  const c = props.c;
+  const icon = c.result === "pass" ? "✓" : c.result === "fail" ? "✗" : "–";
+  const cls = "icon-" + c.result;
+  return (
+    <div className="chk">
+      <span className={cls} style={{ minWidth: 14, textAlign: "center" }}>{icon}</span>
+      <span className="name">{c.name}</span>
+      <span className="actual">{c.actual}</span>
+      <span className="lat">{c.latency_ms != null ? c.latency_ms + "ms" : ""}</span>
+    </div>
+  );
+}
+
+function LangCard(props: { lang: Lang; onAction: (k: string, a: string) => void; busy: string | null }) {
+  const L = props.lang;
+  const [showLogs, setShowLogs] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
+  const p = L.probe;
+  const runnable = L.proc_running;
+  const pct = p.total ? Math.round((p.passed / p.total) * 100) : 0;
+  const barCls = !p.up ? "failed" : p.passed === p.total ? "" : "partial";
+  const busy = props.busy === L.key;
+
+  useEffect(() => {
+    if (!showLogs) return;
+    let alive = true;
+    const pull = () => fetch("/api/servers/" + L.key + "/logs")
+      .then(r => r.json()).then(d => { if (alive) setLogs(d.lines || []); })
+      .catch(() => {});
+    pull();
+    const t = setInterval(pull, 2000);
+    return () => { alive = false; clearInterval(t); };
+  }, [showLogs, L.key]);
+
+  return (
+    <div className="card">
+      <h2>
+        {L.name}
+        <span className="sub">:{L.port}</span>
+      </h2>
+      <div className="badges">
+        {p.up ? <Badge cls="b-green">API UP</Badge> : <Badge cls="b-red">API DOWN</Badge>}
+        {runnable && <Badge cls="b-blue">managed pid {L.pid} · {fmtUptime(L.uptime_s)}</Badge>}
+        {L.external && <Badge cls="b-amber">external process</Badge>}
+        {!runnable && !L.external && <Badge cls="b-grey">no process</Badge>}
+        {p.up && p.passed === p.total && <Badge cls="b-green">spec complete</Badge>}
+      </div>
+
+      <div className={"progress " + barCls}>
+        <div style={{ width: pct + "%" }} />
+      </div>
+      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>
+        {p.up ? p.passed + " / " + p.total + " spec checks passing"
+              : "server not reachable — start it to run spec checks"}
+      </div>
+
+      {p.up
+        ? p.checks.map((c, i) => <CheckRow key={i} c={c} />)
+        : <div className="down-note">Start this implementation to see which spec endpoints are done.</div>}
+
+      <div className="btnrow">
+        {!runnable &&
+          <button className="primary" disabled={busy}
+                  onClick={() => props.onAction(L.key, "start")}>▶ Start</button>}
+        {runnable &&
+          <button className="danger" disabled={busy}
+                  onClick={() => props.onAction(L.key, "stop")}>■ Stop</button>}
+        {runnable &&
+          <button disabled={busy}
+                  onClick={() => props.onAction(L.key, "restart")}>↻ Restart</button>}
+        <button onClick={() => setShowLogs(!showLogs)}>
+          {showLogs ? "Hide logs" : "Logs"}
+        </button>
+        {busy && <span style={{ color: "var(--muted)", fontSize: 12 }}>working…</span>}
+      </div>
+      {showLogs &&
+        <pre className="logs">{logs.length ? logs.join("\n") : "no managed-process output"}</pre>}
+    </div>
+  );
+}
+
+function MonitorsTable(props: { rows: MonitorRow[] }) {
+  return (
+    <div className="scroll"><table>
+      <thead><tr>
+        <th>name</th><th>url</th><th>status</th><th>fails</th><th>every</th><th>updated</th>
+      </tr></thead>
+      <tbody>
+        {props.rows.map(m => (
+          <tr key={m.id}>
+            <td title={m.id}>{m.name}</td>
+            <td title={m.url}>{m.url}</td>
+            <td className={"st-" + m.status}>{m.status}</td>
+            <td>{m.consecutive_failures}</td>
+            <td>{m.interval_seconds}s</td>
+            <td>{(m.updated_at || "").replace("T", " ").slice(0, 19)}</td>
+          </tr>))}
+        {!props.rows.length && <tr><td colSpan={6} style={{ color: "var(--muted)" }}>no rows</td></tr>}
+      </tbody>
+    </table></div>
+  );
+}
+
+function ResultsTable(props: { rows: ResultRow[] }) {
+  return (
+    <div className="scroll"><table>
+      <thead><tr>
+        <th>monitor</th><th>checked_at</th><th>ok</th><th>code</th><th>latency</th><th>error</th>
+      </tr></thead>
+      <tbody>
+        {props.rows.map((r, i) => (
+          <tr key={i}>
+            <td>{r.monitor_name || "—"}</td>
+            <td>{(r.checked_at || "").replace("T", " ").slice(0, 23)}</td>
+            <td className={"ok-" + r.success}>{r.success ? "✓" : "✗"}</td>
+            <td>{r.status_code ?? ""}</td>
+            <td>{r.latency_ms != null ? r.latency_ms + "ms" : ""}</td>
+            <td title={r.error || ""}>{r.error || ""}</td>
+          </tr>))}
+        {!props.rows.length && <tr><td colSpan={6} style={{ color: "var(--muted)" }}>no rows</td></tr>}
+      </tbody>
+    </table></div>
+  );
+}
+
+function App() {
+  const [dash, setDash] = useState<Dash | null>(null);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const timer = useRef<number | null>(null);
+
+  const refresh = useCallback(() => {
+    fetch("/api/dashboard").then(r => r.json())
+      .then(d => { setDash(d); setErr(""); })
+      .catch(e => setErr(String(e)));
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    timer.current = window.setInterval(refresh, 3000);
+    return () => { if (timer.current) clearInterval(timer.current); };
+  }, [refresh]);
+
+  const action = (key: string, act: string) => {
+    setBusy(key);
+    fetch("/api/servers/" + key + "/" + act, { method: "POST" })
+      .then(r => r.json())
+      .then(d => { if (d.detail) setErr(key + ": " + d.detail); })
+      .catch(e => setErr(String(e)))
+      .finally(() => { setBusy(null); refresh(); });
+  };
+
+  const db = dash?.db;
+  return (
+    <div>
+      <header>
+        <h1>Polyglot Health Monitor</h1>
+        <span className="meta">auto-refresh 3s · {dash ? "updated " + dash.generated_at : "loading…"}</span>
+        {db && <span className="meta">db: {db.path}{db.mtime ? " · mtime " + db.mtime : ""}</span>}
+        {err && <span className="meta" style={{ color: "var(--red)" }}>{err}</span>}
+      </header>
+      <main>
+        <div className="grid">
+          {(dash?.languages || []).map(L =>
+            <LangCard key={L.key} lang={L} onAction={action} busy={busy} />)}
+          {!dash && <div className="card">loading…</div>}
+        </div>
+
+        {db && (
+          <div className="dbwrap">
+            <div className="card">
+              <h3>monitors table ({db.counts.monitors ?? 0} rows)</h3>
+              <MonitorsTable rows={db.monitors} />
+            </div>
+            <div className="card">
+              <h3>check_results ({db.counts.check_results ?? 0} rows — latest 50)</h3>
+              <ResultsTable rows={db.recent_results} />
+            </div>
+          </div>
+        )}
+        {db && db.error &&
+          <div className="card" style={{ marginTop: 16, color: "var(--red)" }}>
+            DB read error: {db.error}</div>}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

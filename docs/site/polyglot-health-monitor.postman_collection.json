@@ -1,0 +1,163 @@
+{
+  "info": {
+    "_postman_id": "c2f86d6c-9d83-4b45-8c8f-b88f7f0f67dd",
+    "name": "Polyglot Health Monitor API",
+    "description": "Postman collection derived from docs/documentation/openapi.yaml.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /healthz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "healthz"
+              ]
+            },
+            "description": "Liveness check for the server process itself."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Monitors",
+      "item": [
+        {
+          "name": "GET /monitors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/monitors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "monitors"
+              ]
+            },
+            "description": "List all monitors (current state only, no history)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /monitors",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"example-api\",\n  \"url\": \"https://example.com/health\",\n  \"interval_seconds\": 30,\n  \"timeout_ms\": 2000,\n  \"failure_threshold\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/monitors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "monitors"
+              ]
+            },
+            "description": "Create a monitor and begin scheduling checks immediately."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /monitors/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/monitors/{{monitorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "monitors",
+                "{{monitorId}}"
+              ]
+            },
+            "description": "Get a single monitor's current state."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /monitors/{id}/status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/monitors/{{monitorId}}/status?limit={{limit}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "monitors",
+                "{{monitorId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Max history rows to return, newest first (1-100)."
+                }
+              ]
+            },
+            "description": "Get a monitor plus its recent check history."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /monitors/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/monitors/{{monitorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "monitors",
+                "{{monitorId}}"
+              ]
+            },
+            "description": "Stop scheduling and delete a monitor (cascades history)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1"
+    },
+    {
+      "key": "monitorId",
+      "value": "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "key": "limit",
+      "value": "20"
+    }
+  ]
+}
+

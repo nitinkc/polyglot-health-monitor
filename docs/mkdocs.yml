@@ -6,103 +6,105 @@ repo_name: nitinkc/polyglot-health-monitor
 site_url: https://nitinkc.github.io/polyglot-health-monitor/
 
 theme:
-  name: material
-  icon:
-    previous: fontawesome/solid/angle-left
-    next: fontawesome/solid/angle-right
-  palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: brown
-      accent: blue
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: brown
-      accent: blue
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to light mode
-  features:
-    # Navigation
-    - navigation.tabs
-#    - navigation.tabs.sticky
-    - navigation.sections
-    - navigation.expand
-    - navigation.path
-    - navigation.top           # Back-to-top button
-    - navigation.footer        # Prev/Next page links
-    # navigation.instant disabled — breaks live reload (re-enable for production builds)
-    # - navigation.instant
-    # - navigation.instant.progress
-    # Search
-    - search.suggest
-    - search.highlight
-    - search.share
-    # Content
-    - content.code.copy
-    - content.code.annotate    # (1) style code annotations
-    - content.tabs.link        # Sync tabs across page
-    - content.tooltips
+    name: material
+    icon:
+        previous: fontawesome/solid/angle-left
+        next: fontawesome/solid/angle-right
+    palette:
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: brown
+          accent: blue
+          toggle:
+              icon: material/weather-night
+              name: Switch to dark mode
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: brown
+          accent: blue
+          toggle:
+              icon: material/weather-sunny
+              name: Switch to light mode
+    features:
+        # Navigation
+        - navigation.tabs
+        #    - navigation.tabs.sticky
+        - navigation.sections
+        - navigation.expand
+        - navigation.path
+        - navigation.top # Back-to-top button
+        - navigation.footer # Prev/Next page links
+        # navigation.instant disabled — breaks live reload (re-enable for production builds)
+        # - navigation.instant
+        # - navigation.instant.progress
+        # Search
+        - search.suggest
+        - search.highlight
+        - search.share
+        # Content
+        - content.code.copy
+        - content.code.annotate # (1) style code annotations
+        - content.tabs.link # Sync tabs across page
+        - content.tooltips
 
 plugins:
-  - search
-  - swagger-ui-tag
-  - mermaid2
-  - glightbox
-  - mkdocs_quiz
+    - search
+    - swagger-ui-tag
+    - mermaid2
+    - glightbox
+    - mkdocs_quiz
 
 markdown_extensions:
-  - admonition
-  - pymdownx.details
-  - pymdownx.superfences:
-      disable_indented_code_blocks: true
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.inlinehilite
-  - pymdownx.snippets:
-      base_path: docs
-      check_paths: true
-  - pymdownx.tabbed:
-      alternate_style: true
-  - attr_list
-  - md_in_html
-  - tables
-  - footnotes
-  - def_list
-  - abbr
-  - pymdownx.arithmatex:
-      generic: true
-      block_tag: 'div'
-  - pymdownx.highlight:
-      anchor_linenums: true
-      use_pygments: true
-      guess_lang: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-  - toc:
-      permalink: true
-      title: On this page
-  - pymdownx.snippets:
-      base_path: docs
+    - admonition
+    - pymdownx.details
+    - pymdownx.superfences:
+          disable_indented_code_blocks: true
+          custom_fences:
+              - name: mermaid
+                class: mermaid
+                format: !!python/name:pymdownx.superfences.fence_code_format
+    - pymdownx.inlinehilite
+    - pymdownx.snippets:
+          base_path: docs
+          check_paths: true
+    - pymdownx.tabbed:
+          alternate_style: true
+    - attr_list
+    - md_in_html
+    - tables
+    - footnotes
+    - def_list
+    - abbr
+    - pymdownx.arithmatex:
+          generic: true
+          block_tag: "div"
+    - pymdownx.highlight:
+          anchor_linenums: true
+          use_pygments: true
+          guess_lang: true
+          line_spans: __span
+          pygments_lang_class: true
+    - pymdownx.tasklist:
+          custom_checkbox: true
+    - pymdownx.emoji:
+          emoji_index: !!python/name:material.extensions.emoji.twemoji
+          emoji_generator: !!python/name:material.extensions.emoji.to_svg
+    - toc:
+          permalink: true
+          title: On this page
+    - pymdownx.snippets:
+          base_path: docs
 
 nav:
-  - Home:
-      - Introduction: index.md
-      - spec: spec.md
-      - OpenAPI: API.md
-      - DB Design: db.md
-  - Implementations:
-      - Java: implementation/java.md
-      - Go: implementation/go.md
-      - Python: implementation/python.md
-      - TypeScript: implementation/typescript.md
+    - Home:
+          - Introduction: index.md
+          - spec: spec.md
+          - OpenAPI: API.md
+          - DB Design: db.md
+          #   - Demo App: demo-app.md
+          #   - Demo App API: demo-api.md
+    - Implementations:
+          - Java: implementation/java.md
+          - Go: implementation/go.md
+          - Python: implementation/python.md
+          - TypeScript: implementation/typescript.md

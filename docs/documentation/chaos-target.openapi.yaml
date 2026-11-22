@@ -1,0 +1,616 @@
+openapi: 3.0.3
+info:
+  title: chaos-target API
+  description: >
+    Contract for the `healthDemo/chaos-target` demo application: a single-binary
+    controllable upstream fixture that the health monitors poll.
+
+    The API has two planes:
+
+    * **Poll endpoints** (`/health`, `/jitter`, `/slow`, ...) — what a monitor's
+      `url` points at. Every poll request passes through the instance's current
+      **mode gate** before the route's own behavior runs, so a single
+      `POST /chaos/mode` turns a whole "server" bad.
+    * **Control endpoints** (`/chaos/*`, `/meta`, `/healthz`, `/readyz`) — always
+      reachable, even while the instance is "down", so you can flip, pause,
+      crash, and heal instances mid-test.
+
+    Every response carries `X-Instance-Id`, `X-Region`, and `X-Mode` headers;
+    poll responses also carry `X-Request-Seq`, so callers behind a load-balanced
+    URL can tell which replica answered.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:{port}
+    variables:
+      port:
+        default: "8080"
+        description: >
+          Bare-metal `go run` default. The docker-compose fixture suite
+          publishes instances on host ports 9001–9011 and minikube NodePorts on
+          30080/30081.
+
+tags:
+  - name: poll
+    description: >
+      Data-plane endpoints — what health monitors check. Mode-gated: the
+      instance's current `mode` runs before the route handler, and `latency_ms`
+      is injected on every poll request in every mode. A paused instance
+      (`POST /chaos/pause`) stalls all poll requests until the deadline passes.
+  - name: control
+    description: >
+      Control-plane endpoints — always reachable, never mode-gated. Safe to call
+      on an instance that is otherwise "down".
+
+paths:
+  # ------------------------------------------------------------------ poll --
+  /health:
+    get:
+      tags: [poll]
+      summary: Fast 200 health response
+      operationId: getHealth
+      description: Baseline healthy response — fast 200 with a JSON payload.
+      responses:
+        "200": { $ref: "#/components/responses/PollOK" }
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/TransportFault" }
+
+  /ok:
+    get:
+      tags: [poll]
+      summary: Fast 200 (alias of /health)
+      operationId: getOk
+      description: Identical to `/health`.
+      responses:
+        "200": { $ref: "#/components/responses/PollOK" }
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/TransportFault" }
+
+  /jitter:
+    get:
+      tags: [poll]
+      summary: 200 with baseline jitter + occasional spikes
+      operationId: getJitter
+      description: >
+        Sleeps `jitter_ms` (default 15) then returns 200. ~10% of requests add a
+        random spike of up to `spike_ms` (default 800).
+      responses:
+        "200": { $ref: "#/components/responses/PollOK" }
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/TransportFault" }
+
+  /slow:
+    get:
+      tags: [poll]
+      summary: Hold the request for N ms, then 200
+      operationId: getSlow
+      description: >
+        Holds the response for `ms` milliseconds then returns 200 — the
+        timeout-enforcement fixture (point a monitor at `/slow` with
+        `timeout_ms` below the hold).
+      parameters:
+        - name: ms
+          in: query
+          required: false
+          description: >
+            Hold time in milliseconds. Defaults to the instance's `slow_ms`
+            config (env `SLOW_MS`, default 5000). Capped at 60000.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 60000
+      responses:
+        "200": { $ref: "#/components/responses/PollOK" }
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/TransportFault" }
+
+  /hang:
+    get:
+      tags: [poll]
+      summary: Accept the connection, never send a byte
+      operationId: getHang
+      description: >
+        Opens the socket and never writes — the purest "server accepts but never
+        answers" fixture. The client must give up via its own timeout. The
+        server-side hold is capped at 2 minutes so leaked polls cannot wedge the
+        instance.
+      responses:
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/NoResponse" }
+
+  /error/{code}:
+    get:
+      tags: [poll]
+      summary: Return a fixed error status code
+      operationId: getErrorCode
+      description: >
+        Returns the requested error code with a JSON error body. `429`
+        additionally carries a `Retry-After: 5` header.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Error code to return.
+          schema:
+            type: integer
+            enum: [429, 500, 502, 503]
+      responses:
+        "400":
+          description: Unsupported or non-numeric code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PollError" }
+        "429":
+          description: 'Rate limited — `Retry-After: 5` header is set'
+          headers:
+            Retry-After:
+              schema: { type: integer, example: 5 }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PollError" }
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PollError" }
+        "502":
+          description: Bad gateway
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PollError" }
+        "503":
+          description: Service unavailable (also emitted by mode=down/flapping)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PollError" }
+        default: { $ref: "#/components/responses/TransportFault" }
+
+  /reset:
+    get:
+      tags: [poll]
+      summary: TCP RST — "connection reset by peer"
+      operationId: getReset
+      description: >
+        Accepts the request, then closes the socket with `SO_LINGER=0` so the
+        peer sees `ECONNRESET` instead of a clean FIN. No HTTP response is ever
+        produced.
+      responses:
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/NoResponse" }
+
+  /eof:
+    get:
+      tags: [poll]
+      summary: Valid head + truncated body, then RST
+      operationId: getEof
+      description: >
+        Writes a valid `200 OK` head with `Content-Length: 512`, sends only a
+        partial JSON body, then TCP-resets — clients see "unexpected EOF"
+        mid-read.
+      responses:
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/NoResponse" }
+
+  /malformed:
+    get:
+      tags: [poll]
+      summary: Non-HTTP garbage bytes, then RST
+      operationId: getMalformed
+      description: >
+        Writes bytes that are not HTTP at all (`GARBAGE-RESPONSE ...` plus
+        binary junk), then resets the connection — a parse-failure fixture.
+      responses:
+        "503": { $ref: "#/components/responses/ModeDown" }
+        default: { $ref: "#/components/responses/NoResponse" }
+
+  /flap:
+    get:
+      tags: [poll]
+      summary: Windows of 503s then 200s, repeating
+      operationId: getFlap
+      description: >
+        Per-route flapping: `flap_fail` consecutive 503s followed by `flap_ok`
+        consecutive 200s, forever (defaults 3/3). Exercises monitor DOWN→UP
+        transition history.
+      responses:
+        "200": { $ref: "#/components/responses/PollOK" }
+        "503":
+          description: >
+            Current flap window is in its failing phase — or the whole instance
+            is in mode=down/degraded.
+          headers: { $ref: "#/components/responseHeaders/Poll" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PollError" }
+        default: { $ref: "#/components/responses/TransportFault" }
+
+  # --------------------------------------------------------------- control --
+  /:
+    get:
+      tags: [control]
+      summary: Instance index / endpoint catalog
+      operationId: getIndex
+      responses:
+        "200":
+          description: App identity plus a human-readable endpoint catalog
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Index" }
+
+  /meta:
+    get:
+      tags: [control]
+      summary: Instance identity, mode, uptime, counters
+      operationId: getMeta
+      responses:
+        "200":
+          description: Live instance snapshot
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Meta" }
+
+  /healthz:
+    get:
+      tags: [control]
+      summary: Liveness probe — always 200
+      operationId: getHealthz
+      description: Process liveness. Unconditional 200 while the binary runs.
+      responses:
+        "200":
+          description: Alive
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Liveness" }
+
+  /readyz:
+    get:
+      tags: [control]
+      summary: Readiness probe — reflects mode and pause state
+      operationId: getReadyz
+      description: >
+        503 while paused or in `down`/`reset` mode; flaps in lockstep with the
+        data plane in `flapping` mode; 200 otherwise. Lets k8s pull a "bad"
+        instance out of Service endpoints.
+      responses:
+        "200":
+          description: Ready
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Readiness" }
+        "503":
+          description: Not ready (mode=down/reset, failing flap window, or paused)
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Readiness" }
+
+  /chaos/state:
+    get:
+      tags: [control]
+      summary: Current behavior config
+      operationId: getChaosState
+      description: Same payload as `/meta` — mode plus all active tunables.
+      responses:
+        "200":
+          description: Current chaos configuration
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Meta" }
+
+  /chaos/mode:
+    post:
+      tags: [control]
+      summary: Set the instance behavior mode and tunables
+      operationId: setChaosMode
+      description: >
+        Switches the mode gate applied to every poll endpoint, and optionally
+        updates tunables in the same call. Settings may be supplied as query
+        params, a JSON body, or both (query `mode` is read first, a JSON body
+        overrides it; numeric query params then override JSON fields). Omitted
+        `mode` keeps the current mode. Values are clamped: `error_rate` to
+        [0, 1], `flap_fail`/`flap_ok` to ≥ 1, all `*_ms` to ≥ 0.
+      parameters:
+        - name: mode
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/ChaosMode" }
+        - name: slow_ms
+          in: query
+          required: false
+          description: Hold time for mode=slow and default for /slow
+          schema: { type: integer, minimum: 0 }
+        - name: latency_ms
+          in: query
+          required: false
+          description: Fixed latency injected on every poll request, any mode
+          schema: { type: integer, minimum: 0 }
+        - name: error_rate
+          in: query
+          required: false
+          description: 5xx probability in mode=degraded (0.0–1.0)
+          schema: { type: number, minimum: 0, maximum: 1 }
+        - name: flap_fail
+          in: query
+          required: false
+          description: Failures per flap window (mode=flapping and /flap)
+          schema: { type: integer, minimum: 1 }
+        - name: flap_ok
+          in: query
+          required: false
+          description: Successes per flap window
+          schema: { type: integer, minimum: 1 }
+        - name: jitter_ms
+          in: query
+          required: false
+          description: Baseline jitter latency
+          schema: { type: integer, minimum: 0 }
+        - name: spike_ms
+          in: query
+          required: false
+          description: Occasional spike ceiling for jitter
+          schema: { type: integer, minimum: 0 }
+      requestBody:
+        required: false
+        description: Optional JSON equivalent of the query params.
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChaosConfig" }
+      responses:
+        "200":
+          description: New state after applying the change (same as /meta)
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Meta" }
+        "400":
+          description: Unknown mode — body lists `valid_modes`
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvalidModeError" }
+
+  /chaos/reset:
+    post:
+      tags: [control]
+      summary: Back to healthy, zero counters
+      operationId: resetChaos
+      description: >
+        Restores mode=healthy, clears any active pause, and zeroes the flap
+        counters. Does not reset `requests_seen`.
+      responses:
+        "200":
+          description: State after reset (same as /meta)
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Meta" }
+
+  /chaos/pause:
+    post:
+      tags: [control]
+      summary: Freeze the instance for N seconds
+      operationId: pauseChaos
+      description: >
+        All poll requests block and `/readyz` fails until the deadline passes —
+        a "pod is hung" scenario. Control endpoints (including `/chaos/reset`,
+        which unfreezes early) stay responsive.
+      parameters:
+        - name: seconds
+          in: query
+          required: false
+          description: Freeze duration, capped at 600
+          schema: { type: integer, default: 30, minimum: 1, maximum: 600 }
+      responses:
+        "200":
+          description: Pause scheduled
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PauseResponse" }
+
+  /chaos/crash:
+    post:
+      tags: [control]
+      summary: Crash the process (exit 1)
+      operationId: crashChaos
+      description: >
+        Responds, flushes, then `exit(1)` ~300 ms later — for restart and
+        crash-loop recovery tests (liveness stays up only until the process
+        dies; orchestrators then restart it).
+      responses:
+        "200":
+          description: Crash scheduled — the process dies moments later
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CrashResponse" }
+
+components:
+  responseHeaders:
+    Base:
+      X-Instance-Id:
+        description: Instance identifier (`INSTANCE_ID` env, default hostname)
+        schema: { type: string }
+      X-Region:
+        description: Region label (`REGION` env, default `local`)
+        schema: { type: string }
+      X-Mode:
+        description: Behavior mode in effect when the response was produced
+        schema: { $ref: "#/components/schemas/ChaosMode" }
+    Poll:
+      X-Instance-Id:
+        schema: { type: string }
+      X-Region:
+        schema: { type: string }
+      X-Mode:
+        schema: { $ref: "#/components/schemas/ChaosMode" }
+      X-Request-Seq:
+        description: Per-instance monotonically increasing poll counter
+        schema: { type: integer }
+
+  responses:
+    PollOK:
+      description: Healthy JSON payload
+      headers: { $ref: "#/components/responseHeaders/Poll" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/PollPayload" }
+    ModeDown:
+      description: >
+        Mode gate rejected the request — the whole instance is in `down`,
+        `degraded` (probabilistic), or a failing `flapping` window.
+      headers: { $ref: "#/components/responseHeaders/Poll" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/PollError" }
+    TransportFault:
+      description: >
+        In `reset` mode every poll connection is TCP-reset before any route
+        logic runs — the request never receives an HTTP response.
+    NoResponse:
+      description: >
+        Transport-level fault: no HTTP response is ever produced. Depending on
+        the endpoint the client sees a read timeout, `ECONNRESET`, unexpected
+        EOF, or an unparseable byte stream.
+
+  schemas:
+    ChaosMode:
+      type: string
+      description: >
+        Instance behavior mode, applied to every poll endpoint before route
+        logic: `jitter` (baseline latency + ~10% spikes), `degraded`
+        (probabilistic 500/502/503 + up to 400 ms added latency), `slow` (every
+        request held `slow_ms`), `flapping` (windows of `flap_fail` failures
+        then `flap_ok` successes), `reset` (every connection TCP-reset), `down`
+        (instant 503 + readiness fails).
+      enum: [healthy, jitter, degraded, slow, flapping, reset, down]
+
+    ChaosConfig:
+      type: object
+      properties:
+        mode: { $ref: "#/components/schemas/ChaosMode" }
+        slow_ms: { type: integer, minimum: 0 }
+        latency_ms: { type: integer, minimum: 0 }
+        error_rate: { type: number, minimum: 0, maximum: 1 }
+        flap_fail: { type: integer, minimum: 1 }
+        flap_ok: { type: integer, minimum: 1 }
+        jitter_ms: { type: integer, minimum: 0 }
+        spike_ms: { type: integer, minimum: 0 }
+
+    PollPayload:
+      type: object
+      required: [instance, region, mode, endpoint, seq, latency_ms, ts]
+      properties:
+        instance: { type: string, example: chaos-east-7d9f5c4b6-x2abc }
+        region: { type: string, example: east }
+        mode: { $ref: "#/components/schemas/ChaosMode" }
+        endpoint: { type: string, example: /jitter, description: Request path }
+        seq:
+          type: integer
+          description: Instance poll-request counter at response time
+        latency_ms:
+          type: integer
+          description: Server-measured request duration, including injected delay
+        ts: { type: string, format: date-time }
+
+    PollError:
+      type: object
+      required: [error, instance, region, mode, endpoint, seq, ts]
+      properties:
+        error: { type: string, example: "degraded instance (mode=degraded)" }
+        instance: { type: string }
+        region: { type: string }
+        mode: { $ref: "#/components/schemas/ChaosMode" }
+        endpoint: { type: string }
+        seq: { type: integer }
+        ts: { type: string, format: date-time }
+
+    ChaosTunables:
+      type: object
+      required: [slow_ms, latency_ms, error_rate, flap_fail, flap_ok, jitter_ms, spike_ms]
+      properties:
+        slow_ms: { type: integer, example: 5000 }
+        latency_ms: { type: integer, example: 0 }
+        error_rate: { type: number, example: 0.5 }
+        flap_fail: { type: integer, example: 3 }
+        flap_ok: { type: integer, example: 3 }
+        jitter_ms: { type: integer, example: 15 }
+        spike_ms: { type: integer, example: 800 }
+
+    Meta:
+      type: object
+      required: [instance, region, mode, uptime_seconds, requests_seen, paused, config, ts]
+      properties:
+        instance: { type: string }
+        region: { type: string }
+        mode: { $ref: "#/components/schemas/ChaosMode" }
+        uptime_seconds:
+          type: integer
+          description: Seconds since process start
+        requests_seen:
+          type: integer
+          description: Total poll requests served since process start
+        paused:
+          type: boolean
+          description: True while a /chaos/pause freeze is in effect
+        config: { $ref: "#/components/schemas/ChaosTunables" }
+        ts: { type: string, format: date-time }
+
+    Index:
+      type: object
+      required: [app, instance, region, poll_endpoints, control_endpoints]
+      properties:
+        app: { type: string, example: chaos-target }
+        instance: { type: string }
+        region: { type: string }
+        poll_endpoints:
+          type: object
+          description: Map of poll routes to a one-line behavior description
+          additionalProperties: { type: string }
+        control_endpoints:
+          type: object
+          description: Map of control routes to a one-line effect description
+          additionalProperties: { type: string }
+
+    Liveness:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, example: ok }
+
+    Readiness:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready, paused]
+        mode: { $ref: "#/components/schemas/ChaosMode" }
+
+    PauseResponse:
+      type: object
+      required: [paused_for_seconds, instance]
+      properties:
+        paused_for_seconds: { type: integer }
+        instance: { type: string }
+
+    CrashResponse:
+      type: object
+      required: [crashing, instance]
+      properties:
+        crashing: { type: boolean, example: true }
+        instance: { type: string }
+
+    InvalidModeError:
+      type: object
+      required: [error, valid_modes]
+      properties:
+        error: { type: string, example: unknown mode }
+        valid_modes:
+          type: array
+          items: { $ref: "#/components/schemas/ChaosMode" }
