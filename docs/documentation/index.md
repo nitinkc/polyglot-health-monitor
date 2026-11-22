@@ -21,9 +21,9 @@ concurrency? Cancel a request? Propagate an error?
 
 ## The project: a Concurrent URL/Service Health Monitor
 
-A REST API for registering "monitors" — a URL, a check interval, a timeout, and
-a failure threshold — backed by a scheduler that pings each one independently
-and tracks whether it's `UP` or `DOWN`.
+### Initial Simpler Implementation before fully fledged app
+A **REST API** for registering "monitors" — a URL, a check interval, a timeout, and a failure threshold — backed by a 
+scheduler that pings each one independently and tracks whether it's `UP` or `DOWN`.
 
 It's small enough to finish in a weekend per language, but has just enough teeth
 that you can't fake your way through with boilerplate:
@@ -70,7 +70,8 @@ retry-with-backoff under real network latency — a closer approximation of a cl
 
 ## What "done" looks like
 
-**4 servers**, each idiomatic in its own language, that produce byte-for-byte identical JSON for the same request. 
+**4 servers**, each idiomatic in its own language, that produce byte-for-byte **identical JSON for the same request**. 
+
 Alongside them, a short personal write-up comparing how each language handled cancellation, concurrency bounding, and
 error propagation — arguably the more valuable artifact of the two, since that comparison is exactly the kind of
 cross-stack fluency an FDE interview tests for.

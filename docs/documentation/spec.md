@@ -1,4 +1,4 @@
-# Polyglot Health Monitor — Shared Spec
+# Simple Polyglot Health Monitor — Shared Spec
 
 One contract, four implementations (Java, Go, Python, TypeScript). The point: identical
 external behavior, idiomatically different internals.
@@ -13,7 +13,8 @@ schema across four language implementations.
 The system lets a user register endpoints to monitor (for example, `https://example.com/health`) 
 and then continuously checks those endpoints on a configured interval. 
 
-For each check, it records 
+For each check, it records :-
+
 - whether the request succeeded, 
 - how long it took, 
 - and any error information if it failed.
@@ -22,9 +23,10 @@ For each check, it records
 
 1. Accepts monitor definitions via API (`name`, `url`, `interval_seconds`, `timeout_ms`, `failure_threshold`).
 2. Runs checks concurrently so each monitor is independent and one slow target does not block others.
-3. Enforces a global cap on in-flight outbound checks (`MAX_CONCURRENT_CHECKS`).
-4. Persists every check result to `check_results` and updates monitor state (`UNKNOWN` / `UP` / `DOWN`) based on consecutive-failure rules.
-5. Exposes APIs to list monitors, fetch current state, fetch recent history, and delete monitors.
+3. Enforces a **global cap** on in-flight outbound checks (`MAX_CONCURRENT_CHECKS`).
+4. **Persists** every check result to `check_results` and updates monitor state (`UNKNOWN` / `UP` / `DOWN`) 
+   based on consecutive-failure rules.
+5. **Exposes APIs** to list monitors, fetch current state, fetch recent history, and delete monitors.
 6. Shuts down gracefully on `SIGTERM` by stopping new checks, finishing (or timing out) in-flight checks, and closing DB resources cleanly.
 
 This project is intentionally designed to practice **concurrency, cancellation, shutdown, and error-handling idioms** in each language while preserving the same external behavior.
@@ -93,11 +95,13 @@ CREATE INDEX idx_check_results_monitor_time
 ```
 
 Each language uses its own idiomatic driver 
-- (`database/sql` + `mattn/go-sqlite3` or `modernc.org/sqlite` in Go; 
-- `sqlite3`/`aiosqlite` in Python; `better-sqlite3` in Node; 
-- JDBC + `sqlite-jdbc` or Hikari in Java) 
 
-but the schema, file, and SQL are identical so you can literally point all four servers at the same `.db` file during
+- `database/sql` + `mattn/go-sqlite3` or `modernc.org/sqlite` in Go; 
+- `sqlite3`/`aiosqlite` in Python; 
+- `better-sqlite3` in Node; 
+- JDBC + `sqlite-jdbc` or Hikari in Java
+
+The schema, file, and SQL are identical so you can literally point all four servers at the same `.db` file during
 manual testing and watch them interoperate.
 
 ---
@@ -119,6 +123,7 @@ Request:
   "failure_threshold": 3
 }
 ```
+
 Response `201`:
 ```json
 {
@@ -170,24 +175,24 @@ These are the parts where language idioms diverge — implement all of them, **d
 
 1. **Concurrent scheduling.** Every monitor runs on its **own independent timer/loop**. Adding monitor #50 must not delay 
   checks for monitor #1. This is your concurrency primitive test:
-   - Java: virtual threads (`Thread.ofVirtual()`) or `StructuredTaskScope`, one per monitor tick
-   - Go: one goroutine per monitor + `time.Ticker`, coordinated via channels
-   - Python: `asyncio` tasks + `asyncio.sleep` loop per monitor, run under `asyncio.run`
-   - TypeScript: don't fake concurrency with `setInterval` per monitor and call it done — use it, but reason explicitly
-     about the event loop and confirm checks aren't serialized
+     - Java: virtual threads (`Thread.ofVirtual()`) or `StructuredTaskScope`, one per monitor tick
+     - Go: one goroutine per monitor + `time.Ticker`, coordinated via channels
+     - Python: `asyncio` tasks + `asyncio.sleep` loop per monitor, run under `asyncio.run`
+     - TypeScript: don't fake concurrency with `setInterval` per monitor and call it done — use it, but reason explicitly
+       about the event loop and confirm checks aren't serialized
 
 2. **Bounded concurrency / rate limiting.** Global cap on in-flight HTTP checks (e.g. max 10 concurrent), configurable via
   env var `MAX_CONCURRENT_CHECKS`. This forces:
-   - Java: `Semaphore`
-   - Go: buffered channel as semaphore, or `golang.org/x/sync/semaphore`
-   - Python: `asyncio.Semaphore`
-   - TypeScript: `p-limit` or a hand-rolled queue — and understand *why* you need one at all given there's no real parallelism
+     - Java: `Semaphore`
+     - Go: buffered channel as semaphore, or `golang.org/x/sync/semaphore`
+     - Python: `asyncio.Semaphore`
+     - TypeScript: `p-limit` or a hand-rolled queue — and understand *why* you need one at all given there's no real parallelism
 
 3. **Timeout enforcement.** The `timeout_ms` per monitor must actually cancel the in-flight HTTP request, not just stop waiting for it client-side while the socket stays open.
-   - Java: `HttpClient` with per-request timeout
-   - Go: `context.WithTimeout` passed into the request
-   - Python: `asyncio.wait_for` around the aiohttp/httpx call, or client-level timeout
-   - TypeScript: `AbortController` + `AbortSignal.timeout()`
+     - Java: `HttpClient` with per-request timeout
+     - Go: `context.WithTimeout` passed into the request
+     - Python: `asyncio.wait_for` around the aiohttp/httpx call, or client-level timeout
+     - TypeScript: `AbortController` + `AbortSignal.timeout()`
 
 4. **Graceful shutdown.** On `SIGTERM`, stop accepting new monitor checks, let in-flight checks finish (or hard-cancel after a grace period, your choice — but document it), close the DB connection cleanly, then exit. No orphaned goroutines/threads/tasks logged after shutdown.
 
@@ -200,10 +205,10 @@ These are the parts where language idioms diverge — implement all of them, **d
 6. **Config via env vars**, same names across all four: `PORT`, `DB_PATH`, `MAX_CONCURRENT_CHECKS`, `LOG_LEVEL`. Fail fast with a clear error if required config is missing/invalid — don't silently default something like `DB_PATH`.
 
 7. **Error handling idiom** — this is the single biggest "muscle memory" item:
-   - Java: checked vs unchecked exceptions, where you actually catch vs propagate
-   - Go: explicit `if err != nil` returns, wrapped with `%w` and `errors.Is`/`errors.As`
-   - Python: exceptions + context managers; don't let a single monitor's failure crash the scheduler loop
-   - TypeScript: `Result`-style discriminated unions vs try/catch — pick one and be consistent, then articulate why
+     - Java: checked vs unchecked exceptions, where you actually catch vs propagate
+     - Go: explicit `if err != nil` returns, wrapped with `%w` and `errors.Is`/`errors.As`
+     - Python: exceptions + context managers; don't let a single monitor's failure crash the scheduler loop
+     - TypeScript: `Result`-style discriminated unions vs try/catch — pick one and be consistent, then articulate why
 
 ---
 

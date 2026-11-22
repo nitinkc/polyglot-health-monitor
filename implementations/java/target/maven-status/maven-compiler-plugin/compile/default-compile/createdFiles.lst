@@ -1,8 +1,0 @@
-com/nitin/monitor/Main.class
-com/nitin/monitor/Main$1.class
-com/nitin/monitor/Database.class
-com/nitin/monitor/dto/CheckResult.class
-com/nitin/monitor/repo/MonitorRepository.class
-com/nitin/monitor/Scheduler.class
-com/nitin/monitor/repo/CheckResultRepository.class
-com/nitin/monitor/dto/Monitor.class

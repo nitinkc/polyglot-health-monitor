@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polyglot Health Monitor — Dashboard</title>
+<script src="/vendor/react.development.js"></script>
+<script src="/vendor/react-dom.development.js"></script>
+<script src="/vendor/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+    --muted: #8b949e; --green: #3fb950; --red: #f85149; --amber: #d29922;
+    --blue: #58a6ff; --grey: #6e7681;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.5 -apple-system, "SF Mono", "Cascadia Code", Menlo, monospace; }
+  header { padding: 16px 24px; border-bottom: 1px solid var(--border);
+           display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 18px; margin: 0; }
+  header .meta { color: var(--muted); font-size: 12px; }
+  main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+          gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border);
+          border-radius: 8px; padding: 14px 16px; }
+  .card h2 { font-size: 15px; margin: 0; display: flex; align-items: center; gap: 10px; }
+  .card .sub { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .badges { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px;
+           border: 1px solid var(--border); }
+  .b-green { color: var(--green); border-color: var(--green); }
+  .b-red { color: var(--red); border-color: var(--red); }
+  .b-grey { color: var(--grey); border-color: var(--grey); }
+  .b-blue { color: var(--blue); border-color: var(--blue); }
+  .b-amber { color: var(--amber); border-color: var(--amber); }
+  .progress { height: 6px; background: #21262d; border-radius: 3px;
+              overflow: hidden; margin: 8px 0 12px; }
+  .progress > div { height: 100%; background: var(--green); transition: width .4s; }
+  .progress.partial > div { background: var(--amber); }
+  .progress.failed > div { background: var(--red); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #21262d;
+           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+           max-width: 260px; }
+  th { color: var(--muted); font-weight: 600; }
+  .chk { display: flex; gap: 8px; align-items: baseline; padding: 3px 0;
+         border-bottom: 1px solid #21262d; font-size: 12px; }
+  .chk .name { flex: 1; }
+  .chk .actual { color: var(--muted); }
+  .chk .lat { color: var(--grey); min-width: 52px; text-align: right; }
+  .icon-pass { color: var(--green); } .icon-fail { color: var(--red); }
+  .icon-skip { color: var(--grey); }
+  .btnrow { display: flex; gap: 8px; margin-top: 10px; }
+  button { background: #21262d; color: var(--text); border: 1px solid var(--border);
+           border-radius: 6px; padding: 4px 12px; font: inherit; font-size: 12px;
+           cursor: pointer; }
+  button:hover { border-color: var(--blue); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { border-color: var(--green); color: var(--green); }
+  button.danger { border-color: var(--red); color: var(--red); }
+  pre.logs { background: #0a0c10; border: 1px solid var(--border); border-radius: 6px;
+             padding: 10px; margin-top: 10px; max-height: 220px; overflow: auto;
+             font-size: 11px; color: var(--muted); white-space: pre-wrap; }
+  .dbwrap { margin-top: 20px; display: grid;
+            grid-template-columns: minmax(420px, 5fr) minmax(420px, 7fr); gap: 16px; }
+  @media (max-width: 960px) { .dbwrap { grid-template-columns: 1fr; } }
+  .scroll { overflow: auto; max-height: 340px; }
+  .st-UP { color: var(--green); } .st-DOWN { color: var(--red); }
+  .st-UNKNOWN { color: var(--amber); }
+  .ok-1 { color: var(--green); } .ok-0 { color: var(--red); }
+  h3 { font-size: 13px; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  .down-note { color: var(--muted); font-size: 12px; padding: 8px 0; }
+  nav { display: flex; gap: 4px; padding: 0 24px;
+        border-bottom: 1px solid var(--border); overflow-x: auto; }
+  nav a { padding: 8px 14px; color: var(--muted); text-decoration: none;
+          font-size: 13px; border-bottom: 2px solid transparent; white-space: nowrap; }
+  nav a:hover { color: var(--text); }
+  nav a.active { color: var(--text); border-bottom-color: var(--blue); }
+  nav .navmeta { margin-left: 6px; font-size: 11px; color: var(--grey); }
+  .card.wide { max-width: 1200px; }
+  .titlelink { color: var(--text); text-decoration: none; }
+  .titlelink:hover { color: var(--blue); }
+  .muted { color: var(--muted); } .small { font-size: 12px; }
+  .path { word-break: break-all; white-space: normal; }
+  .scroll.tall { max-height: 60vh; }
+  .checklist { margin-top: 4px; }
+</style>
+</head>
+<body>
+<div id="root"><p style="padding:24px;color:#8b949e">loading… (if this stays, check the browser console)</p></div>
+<script>
+  // render script failures into the page instead of staying blank
+  window.__mounted = false;
+  window.addEventListener("error", function (e) {
+    if (window.__mounted) return;
+    var el = document.getElementById("root");
+    el.innerHTML = '<pre style="color:#f85149;padding:24px;white-space:pre-wrap">'
+      + "Script error: " + (e.message || e.type) + "\n"
+      + (e.filename || "") + ":" + (e.lineno || "") + "</pre>";
+  }, true);
+  window.addEventListener("load", function () {
+    setTimeout(function () {
+      if (window.__mounted) return;
+      var missing = [];
+      if (typeof React === "undefined") missing.push("react.development.js");
+      if (typeof ReactDOM === "undefined") missing.push("react-dom.development.js");
+      if (typeof Babel === "undefined") missing.push("babel.min.js");
+      if (missing.length)
+        document.getElementById("root").innerHTML =
+          '<pre style="color:#f85149;padding:24px">Failed to load: ' + missing.join(", ") + "</pre>";
+    }, 3000);
+  });
+</script>
+
+<script type="text/babel" src="/app.tsx" data-presets="typescript,react"></script>
+
+</body>
+</html>

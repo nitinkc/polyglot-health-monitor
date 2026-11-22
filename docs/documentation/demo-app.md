@@ -13,7 +13,7 @@ live via the `/chaos/*` API.
 ## Diagrams — the 30-second tour
 
 Click any diagram to zoom (glightbox). These cover most of this page —
-the `.drawio` sources live in `healthDemo/diagrams/` if you want to edit them.
+the `.drawio` sources live in `../../monitored-app` if you want to edit them.
 
 ### Request flow — how one poll request is handled
 
@@ -25,7 +25,7 @@ One request's path: pause gate → **MODE** gate → route handler →
 ### Architecture — the fixture suite end to end
 
 Your 4 monitor impls → compose fixture fleet (`.local` aliases + host ports)
-+ minikube fleets → chaos control scripts.
+and the minikube fleets → chaos control scripts.
 
 ![chaos-target architecture](diagrams/chaos-target-architecture.svg)
 
@@ -38,7 +38,7 @@ sharing the Service → intermittent 503s).
 
 ## Layout
 
-```
+```text
 healthDemo/
 ├── chaos-target/        # the Go app + Dockerfile + netem entrypoint
 ├── deploy/
@@ -77,15 +77,15 @@ headers and a JSON body, so monitors (and you) can see *which* replica answered.
 
 ## Control endpoints (chaos API — always reachable)
 
-| Route                          | Effect                                            |
-| :------------------------------- | :-------------------------------------------------- |
-| `GET /meta`                    | instance id, region, mode, uptime, request count  |
-| `GET /chaos/state`             | current behavior config                           |
-| `POST /chaos/mode`             | set mode + tunables (query params or JSON)        |
-| `POST /chaos/pause?seconds=N`  | freeze: requests stall, readyz fails              |
-| `POST /chaos/crash`            | `exit(1)` after responding — restart tests        |
-| `POST /chaos/reset`            | back to healthy, zero counters                    |
-| `GET /healthz` / `GET /readyz` | liveness / readiness (readyz reflects mode)       |
+| Route                          | Effect                                           |
+| :----------------------------- | :----------------------------------------------- |
+| `GET /meta`                    | instance id, region, mode, uptime, request count |
+| `GET /chaos/state`             | current behavior config                          |
+| `POST /chaos/mode`             | set mode + tunables (query params or JSON)       |
+| `POST /chaos/pause?seconds=N`  | freeze: requests stall, readyz fails             |
+| `POST /chaos/crash`            | `exit(1)` after responding — restart tests       |
+| `POST /chaos/reset`            | back to healthy, zero counters                   |
+| `GET /healthz` / `GET /readyz` | liveness / readiness (readyz reflects mode)      |
 
 Modes: `healthy` `jitter` `degraded` `slow` `flapping` `reset` `down` —
 a mode applies to *every* poll endpoint, so one POST turns a whole "server" bad.
