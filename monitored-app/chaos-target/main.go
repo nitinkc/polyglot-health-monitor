@@ -93,6 +93,11 @@ func main() {
 	mux.HandleFunc("POST /chaos/reset", st.chaosResetHandler)
 	mux.HandleFunc("POST /chaos/pause", st.chaosPauseHandler)
 	mux.HandleFunc("POST /chaos/crash", st.chaosCrashHandler)
+	mux.HandleFunc("GET /chaos/history", st.chaosHistoryHandler)
+	mux.HandleFunc("GET /chaos/scenario", st.scenarioGetHandler)
+	mux.HandleFunc("POST /chaos/scenario", st.scenarioStartHandler)
+	mux.HandleFunc("DELETE /chaos/scenario", st.scenarioStopHandler)
+	mux.HandleFunc("GET /metrics", st.metricsHandler)
 
 	srv := &http.Server{
 		Addr:              ":" + envStr("PORT", "8080"),
@@ -159,11 +164,12 @@ func (r *statusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return hj.Hijack()
 }
 
-// logRequests emits one structured JSON line per request.
+// logRequests emits one structured JSON line per request. Status 0 means the
+// socket was hijacked before any response was written (the fault endpoints).
 func (s *State) logRequests(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		rec := &statusRecorder{ResponseWriter: w, status: 0}
 		next.ServeHTTP(rec, r)
 		slog.Info("request_completed",
 			"method", r.Method, "path", r.URL.Path,
@@ -182,6 +188,11 @@ func (s *State) poll(next func(http.ResponseWriter, *http.Request, time.Time)) h
 		seq := s.seq.Add(1)
 		w.Header().Set("X-Request-Seq", strconv.FormatInt(seq, 10))
 
+		// Rec captures the response code for stats; stays 0 on hijacked
+		// connections (reset/eof/malformed/hang), recorded as "fault".
+		rec := &statusRecorder{ResponseWriter: w, status: 0}
+		defer func() { s.stats.record(r.URL.Path, rec.status) }()
+
 		// Freeze gate: /chaos/pause makes the whole instance stall.
 		if until := s.pausedUntil.Load(); until > time.Now().UnixNano() {
 			sleepCtx(r.Context(), time.Duration(until-time.Now().UnixNano()))
@@ -196,10 +207,10 @@ func (s *State) poll(next func(http.ResponseWriter, *http.Request, time.Time)) h
 
 		switch mode {
 		case ModeDown:
-			s.writeErr(w, r, http.StatusServiceUnavailable, "instance down (mode=down)")
+			s.writeErr(rec, r, http.StatusServiceUnavailable, "instance down (mode=down)")
 			return
 		case ModeReset:
-			s.resetHandler(w, r, start)
+			s.resetHandler(rec, r, start)
 			return
 		case ModeSlow:
 			sleepCtx(r.Context(), time.Duration(slowMs)*time.Millisecond)
@@ -207,12 +218,12 @@ func (s *State) poll(next func(http.ResponseWriter, *http.Request, time.Time)) h
 			sleepCtx(r.Context(), time.Duration(rand.IntN(400))*time.Millisecond)
 			if rand.Float64() < errRate {
 				codes := []int{500, 502, 503}
-				s.writeErr(w, r, codes[rand.IntN(len(codes))], "degraded instance (mode=degraded)")
+				s.writeErr(rec, r, codes[rand.IntN(len(codes))], "degraded instance (mode=degraded)")
 				return
 			}
 		case ModeFlapping:
 			if flapSaysFail(&s.flapCount, ff, fo) {
-				s.writeErr(w, r, http.StatusServiceUnavailable, "flap window: down (mode=flapping)")
+				s.writeErr(rec, r, http.StatusServiceUnavailable, "flap window: down (mode=flapping)")
 				return
 			}
 		case ModeJitter:
@@ -223,6 +234,6 @@ func (s *State) poll(next func(http.ResponseWriter, *http.Request, time.Time)) h
 			sleepCtx(r.Context(), time.Duration(d)*time.Millisecond)
 		}
 
-		next(w, r, start)
+		next(rec, r, start)
 	}
 }

@@ -5,8 +5,9 @@
 #   ./chaos-pod.sh chaos-west chaos-target-7f9cbb4d55-x2v4b down
 #   ./chaos-pod.sh chaos-east chaos-target-6d5f8c9b7-abcde flapping flap_fail=2
 #   ./chaos-pod.sh chaos-west chaos-target-bad-...-zzzzz reset
+#   ./chaos-pod.sh chaos-west chaos-target-bad-...-zzzzz scenario outage
 set -u
-NS="${1:?usage: chaos-pod.sh <namespace> <pod> <mode|pause|reset|crash> [key=value...]}"
+NS="${1:?usage: chaos-pod.sh <namespace> <pod> <mode|pause|reset|crash|scenario|scenarios> [key=value...]}"
 POD="${2:?pod required}"
 WHAT="${3:?mode required}"
 shift 3
@@ -15,6 +16,10 @@ case "$WHAT" in
   reset) PATH_Q="chaos/reset" ;;
   crash) PATH_Q="chaos/crash" ;;
   pause) PATH_Q="chaos/pause?seconds=${1:-30}" ;;
+  scenario) PATH_Q="chaos/scenario?name=${1:?scenario name required}" ;;
+  scenarios)
+    kubectl exec -n "$NS" "$POD" -- \
+      wget -qO- "http://127.0.0.1:8080/chaos/scenario"; echo; exit 0 ;;
   *)
     QS="mode=$WHAT"; for kv in "$@"; do QS="$QS&$kv"; done
     PATH_Q="chaos/mode?$QS"

@@ -49,14 +49,19 @@ that you can't fake your way through with boilerplate:
 Frameworks were chosen deliberately *thin* — no Spring Boot, no NestJS, no Gin —
 so the language does the work being practiced, **not the framework's opinions on top of it**.
 
-## Project artifacts
+## Project artifacts — read & build in this order
 
-- **[Shared spec](spec.md)** — the full contract: data model, REST API,
-  behavioral requirements, and testing standards every implementation must meet
-- **[OpenAPI spec](API.md)** — machine-readable API contract, importable
-  into Swagger/Postman/Insomnia for interactive testing
-- **[Database schema](db.md)** — one SQLite schema shared verbatim across all four implementations, so a monitor created 
-  from the Go server is immediately visible from the Python server
+1. **[Shared spec](spec.md)** — the full contract: data model, REST API,
+   behavioral requirements, and testing standards every implementation must meet
+2. **[OpenAPI spec](API.md)** — machine-readable API contract, importable
+   into Swagger/Postman/Insomnia for interactive testing
+3. **[Database schema](db.md)** — one SQLite schema shared verbatim across all four implementations, so a monitor created 
+   from the Go server is immediately visible from the Python server
+4. **Stand up a fixture target** — start with `0-simple-demo` (always returns `200 OK`)
+   so scheduler bugs can't hide behind target flakiness; see [fixture API reference](demo-api.md)
+5. **Build your first implementation** against that baseline, then point it at
+   `chaos-target` for real failure modes — jitter, hangs, resets, flapping —
+   see the [chaos app guide](demo-app.md)
 
 ## Build order
 

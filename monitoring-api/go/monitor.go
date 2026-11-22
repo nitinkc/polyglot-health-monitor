@@ -35,4 +35,8 @@ func NewMonitor(name, url string, interval, timeoutMs, threshold int) *Monitor {
 }
 
 // TODO: Validate() (*errors.New style, wrapped) — interval >= 5, timeout >= 100, etc.
-// TODO: RecordResult(success bool) — status transition logic per Section 4
+// TODO: RecordResult(success bool) — status transition logic per Section 4:
+// success -> consecutive_failures=0, status=UP; failure -> ++ and status=DOWN
+// once consecutive_failures >= failure_threshold. Keep polling after DOWN so
+// flapping targets (/flap, chaos-west sick pod) produce DOWN→UP recovery
+// transitions — never auto-stop a monitor on failures.

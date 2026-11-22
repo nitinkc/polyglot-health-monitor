@@ -21,8 +21,31 @@ import java.util.concurrent.TimeUnit;
  * Global Semaphore bounds concurrent in-flight HTTP checks.
  * Every check result is persisted, and the monitor's status/consecutive_failures
  * are updated per the Section 4 transition rules.
+ *
+ * <p>Chaos-target acceptance criteria — every poll endpoint must classify
+ * correctly (see docs/documentation/chaos-target.openapi.yaml):
+ *
+ * <pre>
+ *   /health, /ok, /jitter      -&gt; success; record status_code + latency_ms
+ *   /slow?ms=N                 -&gt; success only if response lands before
+ *                                 timeout_ms (seeded monitor uses 5s vs 2s)
+ *   /hang, mode=pause          -&gt; failure "timeout"; the request must be
+ *                                 cancelled, not just abandoned client-side
+ *   /error/{429,500,502,503}   -&gt; failure; status_code still recorded
+ *   /reset                     -&gt; failure "connection_reset", null status_code
+ *   /eof                       -&gt; failure "unexpected_eof" — BodyHandlers.
+ *                                 discarding() already reads the body, so the
+ *                                 truncation surfaces as IOException; classify it
+ *   /malformed                 -&gt; failure "invalid_response"
+ *   connection refused (crash) -&gt; failure "connection_refused"
+ *   /flap, mode=flapping       -&gt; alternating results drive
+ *                                 consecutive_failures and DOWN→UP transitions
+ * </pre>
  */
 public class Scheduler {
+    // TODO: remove this auto-stop — the spec never stops polling a monitor.
+    // Keeping it means /flap and the chaos-west sick pod stop being checked
+    // after 5 failures, so DOWN→UP recovery transitions never get recorded.
     private static final int STOP_AFTER_CONSECUTIVE_FAILURES = 5;
     private final ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
     private final Semaphore checkLimiter;
@@ -79,6 +102,9 @@ public class Scheduler {
             long latency = System.currentTimeMillis() - start;
 
             boolean success = response.statusCode() < 400;
+            // TODO: on 4xx/5xx (/error/*, mode=down) keep statusCode populated
+            // in the CheckResult — failure() currently nulls it. Error string
+            // e.g. "http_503". Consider recording latencyMs on HTTP failures too.
             result = success
                     ? CheckResult.success(monitor.id, response.statusCode(), (int) latency)
                     : CheckResult.failure(monitor.id, "http_status_" + response.statusCode());
@@ -88,6 +114,12 @@ public class Scheduler {
             result = CheckResult.failure(monitor.id, "timeout");
             monitor.recordResult(false);
         } catch (Exception e) {
+            // TODO: classify into short stable error strings:
+            //   ConnectException        -> "connection_refused" (crashed/down pod)
+            //   IOException "reset"     -> "connection_reset" (/reset, /eof tail)
+            //   IOException "EOF"/"Premature EOF" -> "unexpected_eof" (/eof)
+            //   unparseable response    -> "invalid_response" (/malformed)
+            // CheckResult: statusCode=null, latencyMs=null per spec.
             result = CheckResult.failure(monitor.id, e.getClass().getSimpleName() + ": " + e.getMessage());
             monitor.recordResult(false);
         }
@@ -104,7 +136,9 @@ public class Scheduler {
             }
         }
 
-        // Structured log line (Section 4.5). Swap for slf4j+logback JSON encoder in production.
+        // Structured log line (Section 4.5).
+        // TODO: swap hand-rolled printf for slf4j + logback JSON encoder —
+        // required by spec, and raw messages break JSON when error contains quotes.
         System.out.printf(
                 "{\"level\":\"info\",\"event\":\"check_completed\",\"monitor_id\":\"%s\",\"success\":%b,\"status\":\"%s\",\"error\":%s,\"ts\":\"%s\"}%n",
                 monitor.id, result.success, monitor.status,

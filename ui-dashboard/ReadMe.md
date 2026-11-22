@@ -33,6 +33,16 @@ spawn servers for you: `mvn` (Java), `go`, `uv`, `npm`/`node`.
     404 behavior, and **DB persistence** (does the created monitor actually
     land in `monitor.db`, or is the impl still in-memory?)
   - Start / Stop / Restart buttons
+- **Chaos tab** — the `monitored-app/chaos-target` fixture as a managed
+  process (default port 9020):
+  - Current mode, pause state, poll stats, tunables, live logs
+  - One-click mode buttons (`healthy` … `down`), `pause`, `crash`, `reset`
+  - **Scenarios** — run canned timed sequences (`outage`, `brownout`,
+    `flap-storm`, `slow-leak`, `chaos-tour`) and cancel them early
+  - **Chaos history** — event log of every mode flip / scenario step
+  - **Watch** — registers the target's `/health` as a monitor on a running
+    implementation; flip a mode and watch the monitor row go DOWN on the
+    Database page
 - **DB panels** — `monitors` table + latest 50 `check_results`, read
   straight from `monitor.db` (read-only connection)
 - Auto-refreshes every 3s — as an implementation gets completed, its card
@@ -51,6 +61,7 @@ each poll cycle, so it exercises the full lifecycle.
 | `PORT_GO` | `8082` | port the managed Go server binds |
 | `PORT_PYTHON` | `8083` | port the managed Python server binds |
 | `PORT_TYPESCRIPT` | `8084` | port the managed TypeScript server binds |
+| `PORT_CHAOS` | `9020` | port the managed chaos target binds (clear of the monitor ports 8081–8084) |
 
 Every spawned server is started with `PORT` + `DB_PATH` in its environment,
 matching Section 4.6 of the spec.
@@ -58,7 +69,7 @@ matching Section 4.6 of the spec.
 ## Files
 
 - `dashboard.py` — FastAPI backend: process manager, spec-probe suite,
-  SQLite snapshot, serves the UI
+  chaos-target control proxy (`/api/targets/*`), SQLite snapshot, serves the UI
 - `index.html` — page shell, styles, error trap
 - `app.tsx` — the entire React frontend; fetched by Babel standalone via
   `data-src` (a real `.tsx` filename is required for TSX parsing)

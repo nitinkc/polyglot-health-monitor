@@ -30,7 +30,7 @@ theme:
         - navigation.tabs
         #    - navigation.tabs.sticky
         - navigation.sections
-        - navigation.expand
+        #        - navigation.expand
         - navigation.path
         - navigation.top # Back-to-top button
         - navigation.footer # Prev/Next page links
@@ -97,13 +97,15 @@ markdown_extensions:
 
 nav:
     - Home:
-          - Introduction: index.md
-          - spec: spec.md
-          - OpenAPI: API.md
+          - Introduction & Learning Path: index.md
+    - Phase 1 · The Contract:
+          - Shared Spec: spec.md
           - DB Design: db.md
-          #   - Demo App: demo-app.md
-          #   - Demo App API: demo-api.md
-    - Implementations:
+          - Monitor API (OpenAPI): API.md
+    - Phase 2 · Targets to Monitor:
+          - Simple Demo → Chaos App (guide): demo-app.md
+          - Fixture API Reference: demo-api.md
+    - Phase 3 · Implementations:
           - Java: implementation/java.md
           - Go: implementation/go.md
           - Python: implementation/python.md

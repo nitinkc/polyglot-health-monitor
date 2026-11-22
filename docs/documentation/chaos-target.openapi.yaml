@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: chaos-target API
   description: >
-    Contract for the `healthDemo/chaos-target` demo application: a single-binary
+    Contract for the `monitored-app/chaos-target` demo application: a single-binary
     controllable upstream fixture that the health monitors poll.
 
     The API has two planes:
@@ -11,9 +11,9 @@ info:
       `url` points at. Every poll request passes through the instance's current
       **mode gate** before the route's own behavior runs, so a single
       `POST /chaos/mode` turns a whole "server" bad.
-    * **Control endpoints** (`/chaos/*`, `/meta`, `/healthz`, `/readyz`) — always
-      reachable, even while the instance is "down", so you can flip, pause,
-      crash, and heal instances mid-test.
+    * **Control endpoints** (`/chaos/*`, `/meta`, `/healthz`, `/readyz`,
+      `/metrics`) — always reachable, even while the instance is "down", so you
+      can flip, pause, crash, heal, and run timed **scenarios** mid-test.
 
     Every response carries `X-Instance-Id`, `X-Region`, and `X-Mode` headers;
     poll responses also carry `X-Request-Seq`, so callers behind a load-balanced
@@ -26,9 +26,8 @@ servers:
       port:
         default: "8080"
         description: >
-          Bare-metal `go run` default. The docker-compose fixture suite
-          publishes instances on host ports 9001–9011 and minikube NodePorts on
-          30080/30081.
+          Bare-metal `go run` default. The minikube fleets are reachable from
+          the host on NodePorts 30080 (chaos-east) and 30081 (chaos-west).
 
 tags:
   - name: poll
@@ -430,6 +429,108 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/CrashResponse" }
 
+  /chaos/scenario:
+    get:
+      tags: [control]
+      summary: Running scenario plus the catalog
+      operationId: getChaosScenario
+      responses:
+        "200":
+          description: Currently running scenario (or null) and all available sequences
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScenarioStatus" }
+    post:
+      tags: [control]
+      summary: Run a canned timed mode sequence
+      operationId: startChaosScenario
+      description: >
+        Starts a named scenario — a sequence of `{mode, hold_seconds}` steps
+        applied by a background timer, so an outage can evolve on its own
+        without a human flipping `/chaos/mode`. One scenario runs at a time:
+        starting one cancels whatever was in flight, as does
+        `POST /chaos/reset`. The final step's `hold_seconds` is 0 — that mode
+        simply persists. Names and steps are listed by `GET /chaos/scenario`
+        (built-ins: `outage`, `brownout`, `flap-storm`, `slow-leak`,
+        `chaos-tour`).
+      parameters:
+        - name: name
+          in: query
+          required: false
+          description: 'Scenario name — or send a JSON body `{"name": "..."}`'
+          schema: { type: string, example: outage }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+      responses:
+        "200":
+          description: Scenario started
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScenarioStatus" }
+        "400":
+          description: Unknown scenario — body lists `available` names
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvalidScenarioError" }
+    delete:
+      tags: [control]
+      summary: Cancel the running scenario
+      operationId: stopChaosScenario
+      description: >
+        Stops stepping through the sequence. The mode stays wherever the last
+        applied step put it — use `POST /chaos/reset` to also heal.
+      responses:
+        "200":
+          description: '`cancelled` is false when nothing was running'
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScenarioCancel" }
+
+  /chaos/history:
+    get:
+      tags: [control]
+      summary: Recent chaos events, chronological
+      operationId: getChaosHistory
+      description: >
+        Bounded log (last 100) of control actions — `mode` transitions,
+        `pause`, `crash`, `reset`, and scenario `start`/`step`/`cancel`/`done`.
+        Correlate a monitor's status flip with the chaos action that caused it.
+      responses:
+        "200":
+          description: Event list, oldest first
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/History" }
+
+  /metrics:
+    get:
+      tags: [control]
+      summary: Prometheus text exposition
+      operationId: getMetrics
+      description: >
+        `chaos_target_uptime_seconds`, `chaos_target_paused`,
+        `chaos_target_mode_info{mode,instance,region}`, and
+        `chaos_target_poll_requests_total{endpoint,code}` where `code="fault"`
+        counts hijacked connections that produced no HTTP response.
+      responses:
+        "200":
+          description: Prometheus text format (version 0.0.4)
+          headers: { $ref: "#/components/responseHeaders/Base" }
+          content:
+            text/plain:
+              schema: { type: string }
+
 components:
   responseHeaders:
     Base:
@@ -558,6 +659,26 @@ components:
         paused:
           type: boolean
           description: True while a /chaos/pause freeze is in effect
+        scenario:
+          nullable: true
+          description: Running scenario info, or null when none is active
+          allOf:
+            - $ref: "#/components/schemas/ScenarioRun"
+        stats:
+          type: object
+          description: What the instance actually served since start
+          properties:
+            by_endpoint:
+              type: object
+              description: Poll count per request path
+              additionalProperties: { type: integer }
+            by_code:
+              type: object
+              description: >-
+                Poll count per response code. `"fault"` counts hijacked
+                connections that never produced an HTTP response
+                (/reset, /eof, /malformed, /hang).
+              additionalProperties: { type: integer }
         config: { $ref: "#/components/schemas/ChaosTunables" }
         ts: { type: string, format: date-time }
 
@@ -614,3 +735,81 @@ components:
         valid_modes:
           type: array
           items: { $ref: "#/components/schemas/ChaosMode" }
+
+    ScenarioStep:
+      type: object
+      required: [mode, hold_seconds]
+      properties:
+        mode: { $ref: "#/components/schemas/ChaosMode" }
+        hold_seconds:
+          type: integer
+          description: How long this mode stays before the next step; 0 = final step, persists
+
+    ScenarioDef:
+      type: object
+      required: [desc, steps]
+      properties:
+        desc: { type: string }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/ScenarioStep" }
+
+    ScenarioRun:
+      type: object
+      required: [running, name, step, total]
+      properties:
+        running: { type: boolean, example: true }
+        name: { type: string, example: outage }
+        step:
+          type: integer
+          description: 1-based index of the step currently applied
+        total: { type: integer }
+
+    ScenarioStatus:
+      type: object
+      properties:
+        scenario:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ScenarioRun"
+        available:
+          type: object
+          additionalProperties: { $ref: "#/components/schemas/ScenarioDef" }
+        instance: { type: string }
+
+    ScenarioCancel:
+      type: object
+      required: [cancelled, instance]
+      properties:
+        cancelled: { type: boolean }
+        instance: { type: string }
+
+    InvalidScenarioError:
+      type: object
+      required: [error, available]
+      properties:
+        error: { type: string, example: 'unknown scenario "nope"' }
+        available:
+          type: array
+          items: { type: string }
+
+    HistoryEvent:
+      type: object
+      required: [ts, kind, detail]
+      properties:
+        ts: { type: string, format: date-time }
+        kind:
+          type: string
+          enum: [mode, pause, crash, reset, scenario]
+        detail: { type: string, example: "healthy -> down" }
+
+    History:
+      type: object
+      required: [events, count, instance]
+      properties:
+        events:
+          type: array
+          description: Chronological, oldest first, capped at 100
+          items: { $ref: "#/components/schemas/HistoryEvent" }
+        count: { type: integer }
+        instance: { type: string }

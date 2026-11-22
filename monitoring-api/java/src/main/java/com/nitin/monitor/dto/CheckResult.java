@@ -23,6 +23,9 @@ public class CheckResult {
         return r;
     }
 
+    // TODO: add a failure variant that still carries statusCode/latencyMs —
+    // HTTP-level failures (/error/{code}, mode=down) have a real status code
+    // the spec says belongs in the row; only transport failures leave them null.
     public static CheckResult failure(String monitorId, String error) {
         CheckResult r = new CheckResult();
         r.id = UUID.randomUUID().toString();

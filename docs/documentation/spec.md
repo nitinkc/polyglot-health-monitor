@@ -35,137 +35,39 @@ This project is intentionally designed to practice **concurrency, cancellation, 
 
 ## 1. Domain Model
 
-**Monitor**
-
-| field                  | type                     | notes                                              |
-|:-----------------------|:-------------------------|:---------------------------------------------------|
-| `id`                   | string (UUID)            | server-generated                                   |
-| `name`                 | string                   | user-provided label                                |
-| `url`                  | string                   | must be valid http/https URL                       |
-| `interval_seconds`     | int                      | how often to check, min 5                          |
-| `timeout_ms`           | int                      | per-request timeout, min 100                       |
-| `failure_threshold`    | int                      | consecutive failures before status flips to `DOWN` |
-| `status`               | enum                     | `UNKNOWN` \| `UP` \| `DOWN`                        |
-| `consecutive_failures` | int                      | resets to 0 on success                             |
-| `created_at`           | timestamp (ISO 8601 UTC) |                                                    |
-| `updated_at`           | timestamp (ISO 8601 UTC) |                                                    |
-
-**CheckResult** (append-only history row)
-
-| field         | type             | notes                               |
-|:--------------|:-----------------|:------------------------------------|
-| `id`          | string (UUID)    |                                     |
-| `monitor_id`  | string (FK)      |                                     |
-| `checked_at`  | timestamp        |                                     |
-| `success`     | bool             |                                     |
-| `status_code` | int, nullable    | null if connection/timeout failure  |
-| `latency_ms`  | int, nullable    | null if request never completed     |
-| `error`       | string, nullable | short error class/message if failed |
+Two entities: **Monitor** (config + derived current state) and **CheckResult**
+(append-only observation log). Fields, types, and relationships are defined once
+in [db.md](db.md) — they map 1:1 onto the API schemas in Section 3. Don't invent
+per-language field names.
 
 ---
 
 ## 2. Database Schema (SQLite, identical file across all four)
 
-```sql
-CREATE TABLE monitors (
-    id                  TEXT PRIMARY KEY,
-    name                TEXT NOT NULL,
-    url                 TEXT NOT NULL,
-    interval_seconds    INTEGER NOT NULL CHECK (interval_seconds >= 5),
-    timeout_ms          INTEGER NOT NULL CHECK (timeout_ms >= 100),
-    failure_threshold   INTEGER NOT NULL CHECK (failure_threshold >= 1),
-    status              TEXT NOT NULL DEFAULT 'UNKNOWN',
-    consecutive_failures INTEGER NOT NULL DEFAULT 0,
-    created_at          TEXT NOT NULL,
-    updated_at          TEXT NOT NULL
-);
+The DDL lives in [db.md](db.md#schema) — identical schema, file, and SQL across
+all four implementations, so you can point all four servers at the same `.db`
+file during manual testing and watch them interoperate.
 
-CREATE TABLE check_results (
-    id          TEXT PRIMARY KEY,
-    monitor_id  TEXT NOT NULL REFERENCES monitors(id) ON DELETE CASCADE,
-    checked_at  TEXT NOT NULL,
-    success     INTEGER NOT NULL,   -- 0/1
-    status_code INTEGER,
-    latency_ms  INTEGER,
-    error       TEXT
-);
-
-CREATE INDEX idx_check_results_monitor_time
-    ON check_results (monitor_id, checked_at DESC);
-```
-
-Each language uses its own idiomatic driver 
+Each language uses its own idiomatic driver:
 
 - `database/sql` + `mattn/go-sqlite3` or `modernc.org/sqlite` in Go; 
 - `sqlite3`/`aiosqlite` in Python; 
 - `better-sqlite3` in Node; 
 - JDBC + `sqlite-jdbc` or Hikari in Java
 
-The schema, file, and SQL are identical so you can literally point all four servers at the same `.db` file during
-manual testing and watch them interoperate.
-
 ---
 
 ## 3. REST API Contract
 
-Base path: `/api/v1`. All bodies are JSON. All timestamps ISO 8601 UTC.
+The authoritative contract is [openapi.yaml](openapi.yaml) (rendered on the
+[API Reference](API.md) page). All four servers must satisfy it identically —
+field names, validation minimums, status codes, and the `UNKNOWN`/`UP`/`DOWN`
+enum are defined there, not restated per language.
 
-### `POST /monitors`
-Create + start monitoring immediately.
-
-Request:
-```json
-{
-  "name": "example-api",
-  "url": "https://example.com/health",
-  "interval_seconds": 30,
-  "timeout_ms": 2000,
-  "failure_threshold": 3
-}
-```
-
-Response `201`:
-```json
-{
-  "id": "b3f1...",
-  "name": "example-api",
-  "url": "https://example.com/health",
-  "interval_seconds": 30,
-  "timeout_ms": 2000,
-  "failure_threshold": 3,
-  "status": "UNKNOWN",
-  "consecutive_failures": 0,
-  "created_at": "2026-07-07T12:00:00Z",
-  "updated_at": "2026-07-07T12:00:00Z"
-}
-```
-`400` on validation failure (bad URL, interval < 5, etc.) with:
-```json
-{ "error": "interval_seconds must be >= 5" }
-```
-
-### `GET /monitors`
-List all monitors (no history). `200` with array of Monitor objects.
-
-### `GET /monitors/:id`
-Single monitor, current state only. `404` if missing.
-
-### `GET /monitors/:id/status?limit=20`
-Monitor + recent history, newest first. Default `limit=20`, max `100`.
-```json
-{
-  "monitor": { ...Monitor... },
-  "history": [
-    { "checked_at": "...", "success": true, "status_code": 200, "latency_ms": 84, "error": null }
-  ]
-}
-```
-
-### `DELETE /monitors/:id`
-Stops scheduling, deletes monitor + cascades history. `204` on success.
-
-### `GET /healthz`
-Liveness for the server itself (not the monitors). Always `200 {"status":"ok"}` if the process is up. Used by your own Docker healthcheck.
+- `GET /healthz` — liveness for the server process itself
+- `GET`/`POST /monitors` — list, or create and start scheduling immediately
+- `GET`/`DELETE /monitors/{id}` — current state, or delete (cascades history)
+- `GET /monitors/{id}/status?limit=N` — monitor plus recent check history
 
 ---
 
@@ -220,31 +122,6 @@ These are the parts where language idioms diverge — implement all of them, **d
 
 ---
 
-## 6. Dockerfile requirement
-
-Multi-stage build in all four (compile/build stage → slim runtime stage). This is a good forcing function for understanding each language's deployment footprint:
-- Java: build with Maven/Gradle stage → run on a JRE (not JDK) base image
-- Go: build stage → `scratch` or `distroless` static binary
-- Python: pip install stage → slim runtime, non-root user
-- TypeScript: `npm ci && npm run build` stage → `node:slim` runtime, only `dist/` + prod deps copied over
-
----
-
-## 7. Suggested Build Order & Time-box
-
-| Order | Language         | Time-box  | Focus                                                                                     |
-|:------|:-----------------|:----------|:------------------------------------------------------------------------------------------|
-| 1     | Java             | 1 weekend | Reference implementation; also learn virtual threads/structured concurrency if new to you |
-| 2     | Go               | 1 weekend | Biggest conceptual jump — do it while motivation is high                                  |
-| 3     | Python (asyncio) | 1 weekend | Closest to typical FDE/integration work                                                   |
-| 4     | TypeScript/Node  | 1 weekend | Event loop reasoning, strict typing discipline                                            |
-
-After all four: write yourself a short "nuances" doc comparing how each handled cancellation, concurrency bounding, 
-and error propagation. That comparison doc is arguably worth more for interview prep than the code itself — it's the 
-kind of cross-stack fluency an FDE role actually tests for.
-
----
-
 ## 8. Appendix: Round 2 — Remote Postgres (Neon) Migration
 
 Optional fifth pass, once all four local-SQLite builds work. Goal: same schema and
@@ -268,37 +145,15 @@ Neon is recommended here because Postgres driver maturity/pooling patterns are
 more broadly transferable to client engagements.)*
 
 ### 8.2 Schema changes (minimal)
-Postgres needs a few type swaps from the SQLite schema in Section 2:
 
-```sql
-CREATE TABLE monitors (
-    id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name                 TEXT NOT NULL,
-    url                  TEXT NOT NULL,
-    interval_seconds     INTEGER NOT NULL CHECK (interval_seconds >= 5),
-    timeout_ms           INTEGER NOT NULL CHECK (timeout_ms >= 100),
-    failure_threshold    INTEGER NOT NULL CHECK (failure_threshold >= 1),
-    status               TEXT NOT NULL DEFAULT 'UNKNOWN',
-    consecutive_failures INTEGER NOT NULL DEFAULT 0,
-    created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+Same two tables, translated to Postgres types — DDL is in
+[db.md](db.md#postgres-schema-round-2). The deltas from Section 2:
 
-CREATE TABLE check_results (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    monitor_id  UUID NOT NULL REFERENCES monitors(id) ON DELETE CASCADE,
-    checked_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    success     BOOLEAN NOT NULL,
-    status_code INTEGER,
-    latency_ms  INTEGER,
-    error       TEXT
-);
+- `TEXT` PKs → `UUID DEFAULT gen_random_uuid()` (enable `pgcrypto` if needed)
+- `TEXT` timestamps → `TIMESTAMPTZ DEFAULT now()`
+- `INTEGER` success flag → `BOOLEAN`
 
-CREATE INDEX idx_check_results_monitor_time
-    ON check_results (monitor_id, checked_at DESC);
-```
-Enable `pgcrypto` (`CREATE EXTENSION IF NOT EXISTS pgcrypto;`) if `gen_random_uuid()`
-isn't available on your Neon project by default.
+Checks and indexes carry over unchanged.
 
 ### 8.3 New config
 Add one env var across all four: `DATABASE_URL` (Postgres DSN). Keep `DB_PATH` as
@@ -316,26 +171,6 @@ under you constantly).
 | Python     | `asyncpg` (not `psycopg2` — stay async, consistent with your `asyncio` scheduler) | Pool via `asyncpg.create_pool`, and reasoning about pool size vs `MAX_CONCURRENT_CHECKS`                                                              |
 | TypeScript | `pg` or `postgres.js`                                                             | Connection pool config, and handling a cold-start timeout gracefully (retry with backoff) rather than crashing the request                            |
 
-##### The core tension
-
-- **Heavy framework** (Spring Boot, NestJS, Django/FastAPI-with-all-the-batteries) → closer to what you'll touch on a real client engagement, but the framework does a lot of the concurrency/error-handling/DI work *for* you. You learn the framework's opinions, not the language's nuances.
-- **Thin/stdlib-first** → you write the scheduler, the semaphore, the timeout handling yourself. You feel the language's raw behavior. But it's less representative of day-to-day client code, where nobody hand-rolls a connection pool.
-
-Given your stated goal — muscle memory in language nuances, not framework mastery — **thin-but-industry-standard** is the right middle path: use the framework that's genuinely the default choice at most companies, but pick the *minimal* one in each ecosystem so it doesn't absorb the concurrency/error-handling work you're trying to practice.
-
-##### Concrete recommendation per language
-
-| Language       | Use this                                                                                 | Not this         | Why                                                                                                                                                                            |
-|:---------------|:-----------------------------------------------------------------------------------------|:-----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Java**       | Plain `com.sun.net.httpserver` or **Javalin** (thin wrapper, no DI magic)                | Spring Boot      | Spring's `@Async`, `@Scheduled`, and auto-configured thread pools would do steps 4.1–4.3 *for* you — exactly the nuance you want to write yourself                             |
-| **Go**         | Standard library `net/http` + `http.ServeMux` (Go 1.22+ has decent routing built in now) | Gin, Echo, Fiber | Go's stdlib HTTP is already ergonomic and idiomatic — a router framework buys you almost nothing here and hides `context` propagation, which is the whole point                |
-| **Python**     | **FastAPI** (but only for routing/validation), asyncio hand-rolled for scheduling        | Celery, Django   | FastAPI's Pydantic validation is genuinely industry-standard and worth knowing; but don't let Celery do your background scheduling — that's the asyncio nuance you're here for |
-| **TypeScript** | **Express** or raw `node:http`                                                           | NestJS           | NestJS's decorators/DI/module system are powerful but they abstract away exactly the event-loop reasoning (Promise scheduling, AbortController) you want reps on               |
-
-##### Why this split specifically
-- Javalin, stdlib `net/http`, FastAPI-for-routing-only, and Express are all **real, industry-common choices** — you're not building toy code, you'd ship any of these to production. So it still counts as "best practices."
-- None of them impose an opinionated concurrency or DI model on top of the language — which means when you write the scheduler, semaphore, and shutdown handling, you're writing *language* code, not *framework* code. That's where the muscle memory actually lives.
-- If you later interview somewhere that uses Spring or NestJS specifically, layering that framework on top of a project where you already deeply understand the underlying concurrency model is a much faster ramp than learning both at once.
 
 
 ### 8.5 New behavioral requirement: retry with backoff

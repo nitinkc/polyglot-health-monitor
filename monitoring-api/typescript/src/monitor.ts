@@ -41,4 +41,8 @@ export function createMonitor(req: MonitorCreateRequest): Monitor {
   };
 }
 
-// TODO: recordResult(monitor, success) — status transition logic per Section 4
+// TODO: recordResult(monitor, success) — status transition logic per Section 4:
+// success -> consecutive_failures=0, status=UP; failure -> ++ and status=DOWN
+// once consecutive_failures >= failure_threshold. Keep polling after DOWN so
+// flapping targets (/flap, chaos-west sick pod) produce DOWN→UP recovery
+// transitions — never auto-stop a monitor on failures.

@@ -13,7 +13,10 @@ Then open http://localhost:9000
 
 import asyncio
 import collections
+import json
 import os
+import re
+import shutil
 import signal
 import sqlite3
 import subprocess
@@ -62,7 +65,7 @@ LANGUAGES: dict[str, Language] = {
         port=_port("java", 8081),
         cwd=REPO_ROOT,
         cmd=[
-            "mvn", "-q", "-f", "implementations/java/pom.xml",
+            "mvn", "-q", "-f", "monitoring-api/java/pom.xml",
             "compile", "exec:java",
             "-Dexec.mainClass=com.nitin.monitor.Main",
         ],
@@ -71,14 +74,14 @@ LANGUAGES: dict[str, Language] = {
         key="go",
         name="Go (net/http)",
         port=_port("go", 8082),
-        cwd=REPO_ROOT / "implementations/go",
+        cwd=REPO_ROOT / "monitoring-api/go",
         cmd=["go", "run", "."],
     ),
     "python": Language(
         key="python",
         name="Python (FastAPI)",
         port=_port("python", 8083),
-        cwd=REPO_ROOT / "implementations/python",
+        cwd=REPO_ROOT / "monitoring-api/python",
         cmd=[
             "uv", "run", "--with-requirements", "requirements.txt",
             "uvicorn", "main:app", "--host", "127.0.0.1",
@@ -89,7 +92,7 @@ LANGUAGES: dict[str, Language] = {
         key="typescript",
         name="TypeScript (Express)",
         port=_port("typescript", 8084),
-        cwd=REPO_ROOT / "implementations/typescript",
+        cwd=REPO_ROOT / "monitoring-api/typescript",
         # install deps on first run, then hand the process slot to tsx
         cmd=["/bin/sh", "-c", "[ -d node_modules ] || npm install; exec npm run dev"],
     ),
@@ -98,6 +101,35 @@ LANGUAGES: dict[str, Language] = {
 # every spawned server gets the shared DB path + its assigned port
 for lang in LANGUAGES.values():
     lang.extra_env = {"PORT": str(lang.port), "DB_PATH": DB_PATH}
+
+
+# Chaos targets — the fixture the monitors poll. Same Language shape works for
+# process management; the chaos control plane is proxied via /api/targets/*.
+# Port 9020 stays clear of the monitor implementations' ports (8081–8084).
+TARGETS: dict[str, Language] = {
+    "chaos": Language(
+        key="chaos",
+        name="Chaos Target",
+        port=_port("chaos", 9020),
+        cwd=REPO_ROOT / "monitored-app/chaos-target",
+        cmd=["go", "run", "."],
+        extra_env={
+            "INSTANCE_ID": "chaos-dashboard",
+            "REGION": "dashboard",
+            "MODE": "healthy",
+        },
+    ),
+}
+for t in TARGETS.values():
+    t.extra_env.setdefault("PORT", str(t.port))
+
+
+def _entity(key: str) -> Language:
+    """Anything the process manager can spawn — monitor impl or chaos target."""
+    ent = LANGUAGES.get(key) or TARGETS.get(key)
+    if ent is None:
+        raise HTTPException(404, f"unknown server '{key}'")
+    return ent
 
 
 # ---------------------------------------------------------------------------
@@ -133,7 +165,7 @@ def _proc_entry(lang_key: str) -> dict:
 
 
 def start_server(lang_key: str) -> dict:
-    lang = _lang(lang_key)
+    lang = _entity(lang_key)
     with PROCS_LOCK:
         existing = PROCS.get(lang_key)
         if existing and existing.proc.poll() is None:
@@ -152,7 +184,7 @@ def start_server(lang_key: str) -> dict:
 
 
 def stop_server(lang_key: str) -> dict:
-    _lang(lang_key)
+    _entity(lang_key)
     with PROCS_LOCK:
         mp = PROCS.pop(lang_key, None)
     if not mp or mp.proc.poll() is not None:
@@ -169,7 +201,7 @@ def stop_server(lang_key: str) -> dict:
 
 
 def get_logs(lang_key: str) -> dict:
-    _lang(lang_key)
+    _entity(lang_key)
     with PROCS_LOCK:
         mp = PROCS.get(lang_key)
         lines = list(mp.logs)[-LOG_TAIL:] if mp else []
@@ -357,6 +389,165 @@ CHECKLIST = ["healthz", "create", "create_invalid", "list", "get", "status",
 
 
 # ---------------------------------------------------------------------------
+# Chaos targets — light probe + control-plane proxy
+# ---------------------------------------------------------------------------
+
+async def target_state(t: Language) -> dict:
+    """Snapshot a chaos target: /meta plus scenario + event history, when up."""
+    out = {"up": False, "meta": None, "scenario": None,
+           "available_scenarios": None, "history": []}
+    try:
+        async with httpx.AsyncClient(base_url=t.base, timeout=2.0) as client:
+            meta = await client.get("/meta")
+            if meta.status_code != 200:
+                return out
+            out["up"] = True
+            out["meta"] = meta.json()
+            sc = await client.get("/chaos/scenario")
+            if sc.status_code == 200:
+                body = sc.json()
+                out["scenario"] = body.get("scenario")
+                out["available_scenarios"] = body.get("available")
+            hist = await client.get("/chaos/history")
+            if hist.status_code == 200:
+                out["history"] = hist.json().get("events", [])[-25:]
+    except httpx.HTTPError:
+        pass
+    return out
+
+
+# chaos control actions the dashboard can proxy to a target
+CHAOS_ACTIONS = {"mode", "reset", "pause", "crash", "scenario", "scenario-stop"}
+# tunables forwarded on mode changes
+CHAOS_TUNABLES = ("slow_ms", "latency_ms", "error_rate",
+                  "flap_fail", "flap_ok", "jitter_ms", "spike_ms")
+
+
+async def chaos_proxy(t: Language, payload: dict) -> dict:
+    action = payload.get("action")
+    if action not in CHAOS_ACTIONS:
+        return {"ok": False, "detail": f"unknown action '{action}'",
+                "valid": sorted(CHAOS_ACTIONS)}
+    try:
+        async with httpx.AsyncClient(base_url=t.base, timeout=3.0) as client:
+            if action == "mode":
+                qs = {k: payload[k] for k in CHAOS_TUNABLES if k in payload}
+                r = await client.post("/chaos/mode",
+                                      params={"mode": payload.get("mode", ""),
+                                              **qs})
+            elif action == "reset":
+                r = await client.post("/chaos/reset")
+            elif action == "pause":
+                r = await client.post("/chaos/pause",
+                                      params={"seconds": payload.get("seconds", 30)})
+            elif action == "crash":
+                r = await client.post("/chaos/crash")
+            elif action == "scenario":
+                r = await client.post("/chaos/scenario",
+                                      params={"name": payload.get("name", "")})
+            else:  # scenario-stop
+                r = await client.delete("/chaos/scenario")
+    except httpx.HTTPError as e:
+        return {"ok": False, "detail": f"target unreachable: {e}"}
+    try:
+        body: object = r.json()
+    except ValueError:
+        body = r.text[:200]
+    return {"ok": r.status_code < 400, "status": r.status_code, "body": body}
+
+
+# ---------------------------------------------------------------------------
+# Minikube fixture fleets — chaos-east (:30080) / chaos-west (:30081)
+# ---------------------------------------------------------------------------
+
+# namespace -> NodePort exposed on `minikube ip` (monitored-app/k8s/minikube.yaml)
+MK_FLEETS = {"chaos-east": 30080, "chaos-west": 30081}
+_MK_IP_TTL = 60.0  # `minikube ip` shells out — cache it
+_mk_cache: dict = {"ip": None, "checked_at": 0.0}
+
+
+def _minikube_ip() -> str | None:
+    now = time.time()
+    if now - _mk_cache["checked_at"] < _MK_IP_TTL:
+        return _mk_cache["ip"]
+    ip = None
+    try:
+        r = subprocess.run(["minikube", "ip"], capture_output=True,
+                           text=True, timeout=4)
+        if r.returncode == 0:
+            ip = r.stdout.strip() or None
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    _mk_cache.update(ip=ip, checked_at=now)
+    return ip
+
+
+def _mk_pods(namespace: str) -> list[dict]:
+    """Best-effort pod status table for a fleet namespace, via kubectl."""
+    if not shutil.which("kubectl"):
+        return []
+    try:
+        r = subprocess.run(
+            ["kubectl", "get", "pods", "-n", namespace, "-o", "json"],
+            capture_output=True, text=True, timeout=5)
+        if r.returncode != 0:
+            return []
+        pods = []
+        for p in json.loads(r.stdout).get("items", []):
+            st = p.get("status", {})
+            cs = (st.get("containerStatuses") or [{}])[0]
+            state = next(iter(cs.get("state") or {"unknown": {}}), "unknown")
+            detail = (cs.get("state") or {}).get(state) or {}
+            env = {e["name"]: e.get("value")
+                   for e in p["spec"]["containers"][0].get("env", [])}
+            pods.append({
+                "name": p["metadata"]["name"],
+                "phase": st.get("phase", "?"),
+                "ready": bool(cs.get("ready")),
+                "restarts": cs.get("restartCount", 0),
+                # e.g. "ImagePullBackOff", "CrashLoopBackOff", or the state name
+                "status": detail.get("reason") or state,
+                "fleet": p["metadata"].get("labels", {}).get("fleet", "main"),
+                "mode": env.get("MODE"),
+            })
+        return pods
+    except (FileNotFoundError, subprocess.TimeoutExpired, ValueError, KeyError):
+        return []
+
+
+async def _fleet_meta(url: str) -> dict | None:
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            r = await client.get(f"{url}/meta")
+            return r.json() if r.status_code == 200 else None
+    except httpx.HTTPError:
+        return None
+
+
+def _docker_fixtures() -> list[dict]:
+    """chaos-targets-* containers published on localhost — the compose suite
+    (ports ~9001–9011). Returns name + host port for each."""
+    if not shutil.which("docker"):
+        return []
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "--filter", "name=chaos-target",
+             "--format", "{{.Names}}\t{{.Ports}}"],
+            capture_output=True, text=True, timeout=4)
+        out = []
+        for line in r.stdout.splitlines():
+            name, _, ports = line.partition("\t")
+            m = re.search(r":(\d+)->8080", ports)
+            if m:
+                out.append({"name": name,
+                            "port": int(m.group(1)),
+                            "url": f"http://127.0.0.1:{m.group(1)}"})
+        return sorted(out, key=lambda d: d["port"])
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+
+
+# ---------------------------------------------------------------------------
 # FastAPI app
 # ---------------------------------------------------------------------------
 
@@ -383,8 +574,9 @@ def app_tsx():
 
 @app.get("/api/dashboard")
 async def dashboard():
-    probes = await asyncio.gather(
-        *(validate_language(l) for l in LANGUAGES.values()))
+    probes, *states = await asyncio.gather(
+        asyncio.gather(*(validate_language(l) for l in LANGUAGES.values())),
+        *(target_state(t) for t in TARGETS.values()))
     langs = []
     for lang, probe in zip(LANGUAGES.values(), probes):
         proc = _proc_entry(lang.key)
@@ -395,8 +587,18 @@ async def dashboard():
             "external": probe["up"] and not proc["running"],
             "probe": probe,
         })
+    targets = []
+    for t, state in zip(TARGETS.values(), states):
+        proc = _proc_entry(t.key)
+        targets.append({
+            "key": t.key, "name": t.name, "port": t.port,
+            "managed": proc["managed"], "proc_running": proc["running"],
+            "pid": proc.get("pid"), "uptime_s": proc.get("uptime_s"),
+            "external": state["up"] and not proc["running"],
+            **state,
+        })
     return {"generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "db": db_snapshot(), "languages": langs}
+            "db": db_snapshot(), "languages": langs, "targets": targets}
 
 
 @app.post("/api/servers/{lang_key}/start")
@@ -411,7 +613,7 @@ def api_stop(lang_key: str):
 
 @app.post("/api/servers/{lang_key}/restart")
 def api_restart(lang_key: str):
-    _lang(lang_key)
+    _entity(lang_key)
     stop_server(lang_key)
     return start_server(lang_key)
 
@@ -419,6 +621,83 @@ def api_restart(lang_key: str):
 @app.get("/api/servers/{lang_key}/logs")
 def api_logs(lang_key: str):
     return get_logs(lang_key)
+
+
+def _target(key: str) -> Language:
+    if key not in TARGETS:
+        raise HTTPException(404, f"unknown target '{key}'")
+    return TARGETS[key]
+
+
+@app.get("/api/targets/{key}/state")
+async def api_target_state(key: str):
+    return await target_state(_target(key))
+
+
+@app.post("/api/targets/{key}/chaos")
+async def api_target_chaos(key: str, payload: dict):
+    """Proxy a chaos control action to the target instance."""
+    return await chaos_proxy(_target(key), payload)
+
+
+@app.post("/api/targets/{key}/watch/{lang_key}")
+async def api_target_watch(key: str, lang_key: str):
+    """Register a monitor for this target's /health on a language impl —
+    the missing link between the two halves of the demo."""
+    t = _target(key)
+    lang = _lang(lang_key)
+    monitor = {
+        "name": f"{key}-{lang_key}",
+        "url": f"http://localhost:{t.port}/health",
+        "interval_seconds": 5,
+        "timeout_ms": 2000,
+        "failure_threshold": 2,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=PROBE_TIMEOUT) as client:
+            r = await client.post(f"{lang.base}/api/v1/monitors", json=monitor)
+    except httpx.HTTPError as e:
+        return {"ok": False,
+                "detail": f"{lang.name} unreachable — start it first: {e}"}
+    try:
+        body: object = r.json()
+    except ValueError:
+        body = r.text[:200]
+    return {"ok": r.status_code in (200, 201), "status": r.status_code,
+            "monitor": monitor, "body": body}
+
+
+@app.get("/api/fixtures")
+async def api_fixtures():
+    """All chaos fixtures visible to the dashboard: the minikube east/west
+    fleets plus any chaos-targets-* docker containers published on localhost.
+    Drives the Chaos page's fixture panel."""
+    installed = shutil.which("minikube") is not None
+    ip = await asyncio.to_thread(_minikube_ip) if installed else None
+    metas = await asyncio.gather(*(
+        _fleet_meta(f"http://{ip}:{port}") if ip else asyncio.sleep(0)
+        for port in MK_FLEETS.values()))
+    fleets = []
+    for (ns, port), meta in zip(MK_FLEETS.items(), metas):
+        pods = await asyncio.to_thread(_mk_pods, ns) if ip else []
+        fleets.append({
+            "namespace": ns,
+            "nodeport": port,
+            "url": f"http://{ip}:{port}" if ip else None,
+            "up": meta is not None,
+            "meta": meta,
+            "pods": pods,
+            "ready_pods": sum(p["ready"] for p in pods),
+        })
+
+    dockers = await asyncio.to_thread(_docker_fixtures)
+    dmetas = await asyncio.gather(*(_fleet_meta(d["url"]) for d in dockers))
+    docker = [{**d, "up": m is not None, "meta": m}
+              for d, m in zip(dockers, dmetas)]
+
+    return {"docker": docker,
+            "minikube": {"installed": installed, "running": ip is not None,
+                         "ip": ip, "fleets": fleets}}
 
 
 app.mount("/vendor", StaticFiles(directory=DASH_DIR / "vendor"), name="vendor")

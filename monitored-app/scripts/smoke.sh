@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Exercise every poll + control endpoint of one chaos-target instance.
-#   ./smoke.sh http://localhost:9001     (compose instance)
-#   ./smoke.sh http://localhost:8090     (local `go run`)
+#   ./smoke.sh http://$(minikube ip):30080   (minikube east NodePort)
+#   ./smoke.sh http://localhost:8080         (local `go run`)
 set -u
-BASE="${1:-http://localhost:9001}"
+BASE="${1:-http://localhost:8080}"
 bold() { printf "\033[1m%s\033[0m\n" "$*"; }
 
 hit() { # path, extra curl args
@@ -32,6 +32,10 @@ fault /hang --max-time 1 # expect: operation timed out, 0 bytes
 
 bold "== control endpoints =="
 curl -s "$BASE/meta" | head -c 400; echo; echo
+hit /chaos/scenario          # running scenario + catalog
+hit /chaos/history           # event log
+curl -s "$BASE/metrics" | head -8; echo
+printf "bogus scenario -> "; curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/chaos/scenario?name=nope"
 curl -s -X POST "$BASE/chaos/mode?mode=down" -o /dev/null
 echo -n "after mode=down:  /health -> "; curl -s -o /dev/null -w "%{http_code}" "$BASE/health"
 echo -n "   /readyz -> ";              curl -s -o /dev/null -w "%{http_code}\n" "$BASE/readyz"
