@@ -3,15 +3,15 @@
 Two fixture apps live here:
 
 | App | What it is |
-| --- | ---------- |
+| :----- | :-------------- |
 | `0-simple-demo/` | FastAPI app with a single `GET /health` route (`200 OK`, plain-text `OK`) — the "always good" baseline |
 | `chaos-target/` | Single-binary Go app with mode-gated poll endpoints and a `/chaos/*` control plane — simulate healthy, jittered, erroring, slow, hanging, resetting, flapping upstreams |
 
 ## Run the fixtures on minikube
 
-The `chaos-target` fleet runs as real Kubernetes workloads — namespaces
-`chaos-east` (3 jittered replicas) and `chaos-west` (2 healthy + 1 born-bad
-flapping pod sharing the Service → intermittent 503s).
+The `chaos-target` fleet runs as real Kubernetes workloads namespaces
+— `chaos-east` (3 jittered replicas) and
+- `chaos-west` (2 healthy + 1 born-bad flapping pod sharing the Service → intermittent 503s).
 
 ```shell
 minikube start
